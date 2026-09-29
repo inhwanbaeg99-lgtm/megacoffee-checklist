@@ -642,9 +642,14 @@
     }
   }
 
+  const kstFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
   function todayStr() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return kstFormatter.format(new Date());
   }
 
   function loadState() {
@@ -730,6 +735,12 @@
           row.classList.add('filled');
         }
 
+        function resetSeg() {
+          indicator.style.width = '0%';
+          pill.classList.remove('picked');
+          row.classList.remove('filled');
+        }
+
         const saved = state.values[id];
         if (saved !== undefined && saved !== '') {
           selectSeg(saved);
@@ -744,7 +755,7 @@
           });
         });
 
-        itemRefs[id] = { item, row, selectSeg };
+        itemRefs[id] = { item, row, selectSeg, resetSeg };
       } else {
         const input = row.querySelector('.qty-input');
         const saved = state.values[id];
@@ -864,6 +875,31 @@
 
   showPage(1);
   syncTodayFromServer();
+
+  function resetForNewDay(newDate) {
+    state = { date: newDate, values: {} };
+    saveState();
+    Object.keys(itemRefs).forEach((id) => {
+      const ref = itemRefs[id];
+      if (ref.input) {
+        ref.input.value = '';
+        ref.row.classList.remove('filled');
+      } else if (ref.resetSeg) {
+        ref.resetSeg();
+      }
+    });
+    updateProgress();
+    syncTodayFromServer();
+  }
+
+  let watchedDate = state.date;
+  setInterval(() => {
+    const t = todayStr();
+    if (t !== watchedDate) {
+      watchedDate = t;
+      resetForNewDay(t);
+    }
+  }, 30000);
 
   /* ---------- Admin login & summary view ---------- */
   const ADMIN_PIN = '1234';
