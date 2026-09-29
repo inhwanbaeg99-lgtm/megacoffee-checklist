@@ -740,9 +740,7 @@
             const val = btn.dataset.val;
             state.values[id] = val;
             selectSeg(val);
-            saveState();
             updateProgress();
-            pushValue(state.date, id, item.label, val);
           });
         });
 
@@ -760,9 +758,7 @@
           if (digitsOnly !== input.value) input.value = digitsOnly;
           state.values[id] = input.value;
           row.classList.toggle('filled', input.value.trim() !== '');
-          saveState();
           updateProgress();
-          pushValue(state.date, id, item.label, input.value);
         });
 
         itemRefs[id] = { item, row, input };
@@ -852,6 +848,13 @@
   nextBtn.addEventListener('click', () => showPage(currentPage + 1));
   saveBtn.addEventListener('click', () => {
     saveState();
+    Object.keys(state.values).forEach((id) => {
+      const ref = itemRefs[id];
+      if (!ref) return;
+      const val = state.values[id];
+      if (val === undefined || val === '') return;
+      pushValue(state.date, id, ref.item.label, val);
+    });
     const original = saveBtn.textContent;
     saveBtn.textContent = 'Saved ✓';
     setTimeout(() => {
