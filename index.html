@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>발주 체크리스트</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-blur: rgba(255, 255, 255, 0.72);
+    --paper: #f2f4f6;
+    --ink: #201d1a;
+    --ink-sub: #7c766d;
+    --line: #e1e5e9;
+    --accent: #3182f6;
+    --accent-soft: #3182f61a;
+    --done: #b7b096;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17181a;
+      --bg-blur: rgba(23, 24, 26, 0.72);
+      --paper: #211f1c;
+      --ink: #ece7de;
+      --ink-sub: #8f887c;
+      --line: #37342e;
+      --accent: #5b9bf8;
+      --accent-soft: #5b9bf826;
+      --done: #5b5647;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17181a;
+    --bg-blur: rgba(23, 24, 26, 0.72);
+    --paper: #211f1c;
+    --ink: #ece7de;
+    --ink-sub: #8f887c;
+    --line: #37342e;
+    --accent: #5b9bf8;
+    --accent-soft: #5b9bf826;
+    --done: #5b5647;
+  }
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-blur: rgba(255, 255, 255, 0.72);
+    --paper: #f2f4f6;
+    --ink: #201d1a;
+    --ink-sub: #7c766d;
+    --line: #e1e5e9;
+    --accent: #3182f6;
+    --accent-soft: #3182f61a;
+    --done: #b7b096;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 28px 16px 40px;
+  }
+
+  .sheet {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header (plain, fixed) ---------- */
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(to bottom, var(--bg) 55%, transparent 100%);
+    padding: 24px 4px 28px;
+    margin-bottom: -12px;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .eyebrow[hidden] {
+    display: none;
+  }
+  .eyebrow-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .progress-count {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  /* ---------- Section (ticket block) ---------- */
+  .section {
+    background: var(--paper);
+    border-radius: 16px;
+    margin-bottom: 14px;
+    padding: 8px 22px 6px;
+  }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .section > .item:last-child {
+    border-bottom: none;
+  }
+
+  .item-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .item-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .item-label {
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+    transition: color 0.2s ease;
+  }
+  .qty-wrap {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .qty-wrap .paren {
+    color: var(--ink);
+  }
+  .qty-wrap .qty-target {
+    font-variant-numeric: tabular-nums;
+  }
+  .qty-input {
+    width: 32px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 2px 0 3px;
+    margin: 0 2px;
+    -moz-appearance: textfield;
+    transition: color 0.2s ease;
+  }
+  .qty-input::placeholder {
+    color: var(--line);
+    font-weight: 600;
+  }
+  .qty-input::-webkit-outer-spin-button,
+  .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .qty-input:focus {
+    outline: none;
+  }
+  .item-note {
+    font-size: 12.5px;
+    color: var(--ink-sub);
+    margin-top: 3px;
+    line-height: 1.5;
+    display: flex;
+    gap: 5px;
+  }
+  .item-note::before {
+    content: '·';
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .item.filled .item-label {
+    color: var(--ink);
+  }
+  .item.filled .qty-input {
+    color: var(--accent);
+  }
+
+  .seg-pill {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    width: 138px;
+  }
+  .seg-indicator {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    height: calc(100% - 6px);
+    width: 0;
+    background: var(--accent);
+    border-radius: 999px;
+    opacity: 0;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.2s ease;
+    z-index: 0;
+  }
+  .seg-pill.picked .seg-indicator {
+    opacity: 1;
+  }
+  .seg-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    height: 30px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 999px;
+  }
+
+  .bottom-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .page-btn {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: none;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+  .page-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .page-dots {
+    display: flex;
+    align-items: center;
+  }
+  .page-dot {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .page-dot::before {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .page-dot.active::before {
+    background: var(--accent);
+    transform: scale(1.35);
+  }
+  .save-btn {
+    display: none;
+    flex: 1;
+    max-width: 220px;
+    height: 36px;
+    border: none;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  .bottom-nav.at-end .save-btn {
+    display: block;
+  }
+  .bottom-nav.at-end .page-dots,
+  .bottom-nav.at-end #nextBtn {
+    display: none;
+  }
+
+  .admin-inline-login {
+    width: 220px;
+    margin-bottom: 14px;
+  }
+  .admin-pass-input {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2em;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 0;
+    box-sizing: border-box;
+  }
+  .admin-pass-input:focus {
+    outline: none;
+  }
+  .admin-error {
+    color: #e0483e;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 8px;
+  }
+  .admin-inline-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .admin-btn {
+    flex: 1;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .admin-inline-actions .admin-btn {
+    height: 30px;
+    border-radius: 8px;
+    font-size: 11.5px;
+  }
+  .admin-btn.ghost {
+    background: var(--paper);
+    color: var(--ink-sub);
+  }
+
+  .admin-view {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 16px 60px;
+  }
+  .admin-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .admin-view-title {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .admin-view .admin-btn {
+    flex: 0 0 auto;
+    padding: 0 16px;
+  }
+  .admin-date-select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+  }
+  .admin-page-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 20px 2px 6px;
+  }
+  .admin-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .admin-row .a-label {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .admin-row .a-value {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--ink-sub);
+  }
+  .admin-row .a-value.a-empty {
+    color: var(--line);
+  }
+  .admin-row .a-value.a-under {
+    color: #e0483e;
+  }
+  .admin-row .a-value.a-equal {
+    color: var(--accent);
+  }
+  .admin-row .a-value.a-over {
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+  <div class="sheet" id="sheet">
+    <div class="top-header">
+      <div class="eyebrow" id="eyebrowWrap">
+        <button type="button" class="eyebrow-btn" id="eyebrowBtn">MGC · 춘천온의파크점</button>
+      </div>
+      <div class="admin-inline-login" id="adminInlineLogin" hidden>
+        <input
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+          id="adminPassInput"
+          class="admin-pass-input"
+          placeholder=""
+        />
+        <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
+        <div class="admin-inline-actions">
+          <button class="admin-btn ghost" id="adminCancelBtn">취소</button>
+          <button class="admin-btn" id="adminLoginBtn">로그인</button>
+        </div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-count" id="progressCount">0 / 0</div>
+      </div>
+      <div class="bottom-nav" id="bottomNav">
+        <button class="page-btn" id="prevBtn" aria-label="이전 페이지">‹</button>
+        <div class="page-dots" id="pageDots"></div>
+        <button class="page-btn" id="nextBtn" aria-label="다음 페이지">›</button>
+        <button class="save-btn" id="saveBtn">Save</button>
+      </div>
+    </div>
+
+    <div id="sections"></div>
+  </div>
+
+  <div class="admin-view" id="adminView" hidden>
+    <div class="admin-view-header">
+      <div class="admin-view-title">저장된 발주 내역</div>
+      <button class="admin-btn" id="adminBackBtn">체크리스트로</button>
+    </div>
+    <select class="admin-date-select" id="adminDateSelect"></select>
+    <div id="adminSummary"></div>
+  </div>
+
+<script>
+  const DATA = [
+    [
+      { label: '우유', qty: '80개' },
+      { label: '아몬드 브리즈', qty: '8개' },
+      { label: '휘핑', qty: '6개' },
+      { label: '기본 스트로우 (포장용)', qty: '3개' },
+      { label: '버블 스트로우 (포장용)', qty: '3개' },
+      { label: '기본 스트로우 (매장용)', qty: '2개' },
+      { label: '버블 스트로우 (매장용)', qty: '2개' },
+      { label: '냅킨', qty: '6개' },
+      { label: '2구 캐리어 (종이)', qty: '2박스' },
+      { label: '2구 캐리어 (비닐)', qty: '2개' },
+      { label: '1구 캐리어 (비닐)', qty: '2개' },
+      { label: '콜드브루 오리지날', qty: '4통' },
+      { label: '콜드브루 디카페인', qty: '4통' },
+    ],
+    [
+      { label: '쿠키 파우더', qty: '6개' },
+      { label: '요거트 파우더', qty: '6개' },
+      { label: '초코 파우더', qty: '6개' },
+      { label: '오곡 파우더', qty: '4개' },
+      { label: '토피넛 파우더', qty: '2개' },
+      { label: '밀크쉐이크 파우더', qty: '2개' },
+      { label: '코코넛 파우더', qty: '4개' },
+      { label: '복숭아 파우더', qty: '8개' },
+      { label: '바나나 파우더', qty: '1개' },
+      { label: '민트 파우더', qty: '1개' },
+      { label: '홍차 파우더', qty: '1개' },
+      { label: '슈크림 파우더', qty: '1개' },
+      { label: '쿠키 분태', qty: '2개', note: '재고 1/3 이하 시 발주' },
+      { label: '오레오 과자', qty: '2박스' },
+      { label: '체리 파우더', qty: '4통' },
+      { label: '황설탕', qty: '2개' },
+      { label: '페퍼민트 티백', qty: '3개' },
+      { label: '녹차 티백', qty: '3개' },
+      { label: '얼그레이 티백', qty: '3개' },
+      { label: '캐모마일 티백', qty: '3개' },
+      { label: '사과 티백', qty: '4박스' },
+    ],
+    [
+      { label: '슈가시럽', qty: '6개' },
+      { label: '바닐라 시럽', qty: '3개' },
+      { label: '헤이즐넛 시럽', qty: '3개' },
+      { label: '카라멜 시럽', qty: '3개' },
+      { label: '라이트 바닐라 시럽', qty: '2개' },
+      { label: '자몽 시럽', qty: '1개' },
+      { label: '모히토 시럽', qty: '1개' },
+      { label: '라임 시럽', qty: '1개' },
+      { label: '블루큐라소 시럽', qty: '1개' },
+      { label: '민트 시럽', qty: '1개' },
+      { label: '얼그레이 시럽', qty: '1개' },
+      { label: '제로 복숭아 시럽', qty: '2개' },
+      { label: '메가 퓨레', qty: '1개' },
+      { label: '흑당 퓨레', qty: '1개' },
+      { label: '청포도 스무디 퓨레', qty: '1개' },
+      { label: '딸기 스무디 퓨레', qty: '1개' },
+      { label: '초코쉘', qty: '1개' },
+      { label: '초코 토핑', qty: '1개' },
+      { label: '카라멜 토핑', qty: '1개' },
+      { label: '블루베리 베이스', qty: '2개' },
+      { label: '감귤 베이스', qty: '2개' },
+      { label: '망고 베이스', qty: '2개' },
+      { label: '자몽에이드 베이스', qty: '1개' },
+      { label: '레몬에이드 베이스', qty: '1개' },
+    ],
+    [
+      { label: '커피빈', qty: '3박스' },
+      { label: '디카페인 커피빈', qty: '8개' },
+      { label: '키친타올', segments: 3, note: '1/3 이하시 발주' },
+      { label: '32온즈 컵홀더', segments: 3, note: '1/3 이하시 발주' },
+      { label: '할커피 파우더', qty: '6개' },
+      { label: '포크', qty: '2개' },
+      { label: '스푼', qty: '2개' },
+      { label: '나이프', qty: '2개' },
+    ],
+    [
+      { label: '24온즈 컵홀더', qty: '2박스' },
+      { label: '24온즈 컵', qty: '4박스' },
+      { label: '20온즈 컵', qty: '4박스' },
+      { label: '32온즈 컵', qty: '2박스' },
+      { label: '32온즈 돔 리드', segments: 3, note: '1/3 이하시 발주' },
+      { label: '20·24온즈 돔 리드', qty: '2박스(20개입)' },
+    ],
+  ];
+
+  const STORAGE_KEY = 'megacoffee-checklist-v1';
+  const SCRIPT_URL =
+    'https://script.google.com/macros/s/AKfycbzEffsg53ZmMEf_wTlUZ2eGZW4XVDHLPxna8uY8zlsGdlm64M2zbscE4ppKBNAWgJoI/exec';
+
+  function pushValue(date, itemId, label, value) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ date, itemId, label, value }),
+    }).catch(() => {});
+  }
+
+  async function fetchDateValues(date) {
+    try {
+      const res = await fetch(`${SCRIPT_URL}?date=${encodeURIComponent(date)}`);
+      const data = await res.json();
+      return data.values || {};
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchDateList() {
+    try {
+      const res = await fetch(`${SCRIPT_URL}?dates=1`);
+      const data = await res.json();
+      return data.dates || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function loadState() {
+    let saved;
+    try {
+      saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    } catch (e) {
+      saved = null;
+    }
+    if (!saved || saved.date !== todayStr()) {
+      return { date: todayStr(), values: {} };
+    }
+    if (!saved.values) saved.values = {};
+    return saved;
+  }
+
+  let state = loadState();
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  const sectionsEl = document.getElementById('sections');
+  let idCounter = 0;
+  let currentPage = 1;
+  const itemRefs = {};
+
+  DATA.forEach((items, pageIdx) => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.dataset.page = pageIdx + 1;
+
+    items.forEach((item) => {
+      const id = 'item-' + idCounter++;
+      item._id = id;
+
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.dataset.id = id;
+
+      const qtyMarkup = item.segments
+        ? `
+            <div class="seg-pill" id="seg-${id}">
+              <div class="seg-indicator"></div>
+              ${Array.from(
+                { length: item.segments },
+                (_, i) => `<button type="button" class="seg-btn" data-val="${i + 1}"></button>`,
+              ).join('')}
+            </div>
+          `
+        : `
+            <div class="qty-wrap">
+              <span class="paren">(</span><input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="off"
+                class="qty-input"
+                placeholder="0"
+                aria-label="${item.label} 발주 개수"
+              /><span class="paren">/</span><span class="qty-target">${item.qty}</span><span class="paren">)</span>
+            </div>
+          `;
+
+      row.innerHTML = `
+        <div class="item-body">
+          <div class="item-row">
+            <div class="item-label">${item.label}</div>
+            ${qtyMarkup}
+          </div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+        </div>
+      `;
+
+      if (item.segments) {
+        const pill = row.querySelector('.seg-pill');
+        const indicator = pill.querySelector('.seg-indicator');
+        const segBtns = pill.querySelectorAll('.seg-btn');
+
+        function selectSeg(val) {
+          indicator.style.width = `calc((100% - 6px) * ${val} / ${item.segments})`;
+          pill.classList.add('picked');
+          row.classList.add('filled');
+        }
+
+        const saved = state.values[id];
+        if (saved !== undefined && saved !== '') {
+          selectSeg(saved);
+        }
+
+        segBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const val = btn.dataset.val;
+            state.values[id] = val;
+            selectSeg(val);
+            saveState();
+            updateProgress();
+            pushValue(state.date, id, item.label, val);
+          });
+        });
+
+        itemRefs[id] = { item, row, selectSeg };
+      } else {
+        const input = row.querySelector('.qty-input');
+        const saved = state.values[id];
+        if (saved !== undefined && saved !== '') {
+          input.value = saved;
+          row.classList.add('filled');
+        }
+
+        input.addEventListener('input', () => {
+          const digitsOnly = input.value.replace(/[^0-9]/g, '');
+          if (digitsOnly !== input.value) input.value = digitsOnly;
+          state.values[id] = input.value;
+          row.classList.toggle('filled', input.value.trim() !== '');
+          saveState();
+          updateProgress();
+          pushValue(state.date, id, item.label, input.value);
+        });
+
+        itemRefs[id] = { item, row, input };
+      }
+
+      sectionEl.appendChild(row);
+    });
+
+    sectionsEl.appendChild(sectionEl);
+  });
+
+  function applyRemoteValue(id, val) {
+    const ref = itemRefs[id];
+    if (!ref) return;
+    const strVal = String(val);
+    if (state.values[id] === strVal) return;
+    state.values[id] = strVal;
+    if (ref.input) {
+      ref.input.value = strVal;
+      ref.row.classList.toggle('filled', strVal.trim() !== '');
+    } else if (ref.selectSeg) {
+      ref.selectSeg(strVal);
+    }
+  }
+
+  function syncTodayFromServer() {
+    fetchDateValues(state.date).then((remote) => {
+      if (!remote) return;
+      let changed = false;
+      Object.keys(remote).forEach((id) => {
+        if (state.values[id] !== String(remote[id])) {
+          applyRemoteValue(id, remote[id]);
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveState();
+        updateProgress();
+      }
+    });
+  }
+
+  function updateProgress() {
+    const pageItems = document.querySelectorAll(
+      `.section[data-page="${currentPage}"] .item`,
+    );
+    let done = 0;
+    pageItems.forEach((el) => {
+      if (el.classList.contains('filled')) done++;
+    });
+    const total = pageItems.length;
+    document.getElementById('progressCount').textContent = `${done} / ${total}`;
+    document.getElementById('progressFill').style.width =
+      total > 0 ? `${(done / total) * 100}%` : '0%';
+  }
+
+  const totalPages = DATA.length;
+  const bottomNav = document.getElementById('bottomNav');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const pageDotsEl = document.getElementById('pageDots');
+  const saveBtn = document.getElementById('saveBtn');
+  const sectionEls = document.querySelectorAll('.section');
+
+  for (let i = 1; i <= totalPages; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'page-dot';
+    dot.setAttribute('aria-label', `${i} 페이지로 이동`);
+    dot.addEventListener('click', () => showPage(i));
+    pageDotsEl.appendChild(dot);
+  }
+  const dotEls = pageDotsEl.querySelectorAll('.page-dot');
+
+  function showPage(n) {
+    currentPage = Math.min(totalPages, Math.max(1, n));
+    sectionEls.forEach((el) => {
+      el.style.display = Number(el.dataset.page) === currentPage ? '' : 'none';
+    });
+    dotEls.forEach((dot, i) => dot.classList.toggle('active', i + 1 === currentPage));
+    prevBtn.disabled = currentPage === 1;
+    bottomNav.classList.toggle('at-end', currentPage === totalPages);
+    updateProgress();
+    window.scrollTo({ top: 0 });
+  }
+
+  prevBtn.addEventListener('click', () => showPage(currentPage - 1));
+  nextBtn.addEventListener('click', () => showPage(currentPage + 1));
+  saveBtn.addEventListener('click', () => {
+    saveState();
+    const original = saveBtn.textContent;
+    saveBtn.textContent = 'Saved ✓';
+    setTimeout(() => {
+      saveBtn.textContent = original;
+    }, 1200);
+  });
+
+  showPage(1);
+  syncTodayFromServer();
+
+  /* ---------- Admin login & summary view ---------- */
+  const ADMIN_PIN = '1234';
+  const sheetEl = document.getElementById('sheet');
+  const eyebrowWrap = document.getElementById('eyebrowWrap');
+  const eyebrowBtn = document.getElementById('eyebrowBtn');
+  const adminInlineLogin = document.getElementById('adminInlineLogin');
+  const adminPassInput = document.getElementById('adminPassInput');
+  const adminError = document.getElementById('adminError');
+  const adminCancelBtn = document.getElementById('adminCancelBtn');
+  const adminLoginBtn = document.getElementById('adminLoginBtn');
+  const adminView = document.getElementById('adminView');
+  const adminBackBtn = document.getElementById('adminBackBtn');
+  const adminSummaryEl = document.getElementById('adminSummary');
+  const adminDateSelect = document.getElementById('adminDateSelect');
+
+  function openAdminLogin() {
+    adminPassInput.value = '';
+    adminError.hidden = true;
+    eyebrowWrap.hidden = true;
+    adminInlineLogin.hidden = false;
+    setTimeout(() => adminPassInput.focus(), 50);
+  }
+  function closeAdminLogin() {
+    adminInlineLogin.hidden = true;
+    eyebrowWrap.hidden = false;
+  }
+
+  function parseTargetNumber(qty) {
+    const m = String(qty).match(/\d+/);
+    return m ? parseInt(m[0], 10) : null;
+  }
+
+  function formatSavedValue(item, valuesMap) {
+    const raw = valuesMap[item._id];
+    if (raw === undefined || raw === '' || raw === null) {
+      return { text: '입력 안 함', cls: 'a-empty' };
+    }
+    const target = item.segments ? item.segments : parseTargetNumber(item.qty);
+    const text = item.segments ? `${raw} / ${item.segments}` : `${raw} / ${item.qty}`;
+    const rawNum = Number(raw);
+    let cls = 'a-equal';
+    if (target !== null && !Number.isNaN(rawNum)) {
+      if (rawNum < target) cls = 'a-under';
+      else if (rawNum > target) cls = 'a-over';
+      else cls = 'a-equal';
+    }
+    return { text, cls };
+  }
+
+  function buildAdminSummary(valuesMap) {
+    adminSummaryEl.innerHTML = '';
+    DATA.forEach((items, pageIdx) => {
+      const pageLabel = document.createElement('div');
+      pageLabel.className = 'admin-page-label';
+      pageLabel.textContent = `${pageIdx + 1} 페이지`;
+      adminSummaryEl.appendChild(pageLabel);
+
+      items.forEach((item) => {
+        const { text, cls } = formatSavedValue(item, valuesMap);
+        const row = document.createElement('div');
+        row.className = 'admin-row';
+        row.innerHTML = `
+          <span class="a-label">${item.label}</span>
+          <span class="a-value ${cls}">${text}</span>
+        `;
+        adminSummaryEl.appendChild(row);
+      });
+    });
+  }
+
+  async function loadAdminDate(date) {
+    adminSummaryEl.innerHTML = '<div class="admin-page-label">불러오는 중...</div>';
+    const remote = await fetchDateValues(date);
+    const valuesMap = remote || (date === state.date ? state.values : {});
+    buildAdminSummary(valuesMap);
+  }
+
+  async function enterAdminView() {
+    sheetEl.style.display = 'none';
+    bottomNav.style.display = 'none';
+    adminView.hidden = false;
+
+    adminDateSelect.innerHTML = `<option value="${state.date}">${state.date}</option>`;
+    adminDateSelect.value = state.date;
+    loadAdminDate(state.date);
+
+    const dates = await fetchDateList();
+    if (dates.length) {
+      adminDateSelect.innerHTML = dates
+        .map((d) => `<option value="${d}">${d}</option>`)
+        .join('');
+      adminDateSelect.value = state.date;
+    }
+  }
+  function exitAdminView() {
+    adminView.hidden = true;
+    sheetEl.style.display = '';
+    bottomNav.style.display = '';
+  }
+
+  adminDateSelect.addEventListener('change', () => {
+    loadAdminDate(adminDateSelect.value);
+  });
+
+  function tryAdminLogin() {
+    if (adminPassInput.value === ADMIN_PIN) {
+      closeAdminLogin();
+      enterAdminView();
+    } else {
+      adminError.hidden = false;
+      adminPassInput.value = '';
+      adminPassInput.focus();
+    }
+  }
+
+  eyebrowBtn.addEventListener('click', openAdminLogin);
+  adminCancelBtn.addEventListener('click', closeAdminLogin);
+  adminLoginBtn.addEventListener('click', tryAdminLogin);
+  adminPassInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryAdminLogin();
+  });
+  adminBackBtn.addEventListener('click', exitAdminView);
+</script>
+
+</body>
+</html>
