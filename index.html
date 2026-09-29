@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://script.google.com" crossorigin />
+<link rel="dns-prefetch" href="https://script.google.com" />
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
+<link rel="dns-prefetch" href="https://script.googleusercontent.com" />
 <title>발주 체크리스트</title>
 <style>
   :root {
@@ -614,8 +618,16 @@
   const SCRIPT_URL =
     'https://script.google.com/macros/s/AKfycbzEffsg53ZmMEf_wTlUZ2eGZW4XVDHLPxna8uY8zlsGdlm64M2zbscE4ppKBNAWgJoI/exec';
 
+  const FETCH_TIMEOUT_MS = 8000;
+
+  function fetchWithTimeout(url, options) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+  }
+
   function pushValue(date, itemId, label, value) {
-    fetch(SCRIPT_URL, {
+    fetchWithTimeout(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ date, itemId, label, value }),
@@ -624,7 +636,7 @@
 
   async function fetchDateValues(date) {
     try {
-      const res = await fetch(`${SCRIPT_URL}?date=${encodeURIComponent(date)}`);
+      const res = await fetchWithTimeout(`${SCRIPT_URL}?date=${encodeURIComponent(date)}`);
       const data = await res.json();
       return data.values || {};
     } catch (e) {
@@ -634,7 +646,7 @@
 
   async function fetchDateList() {
     try {
-      const res = await fetch(`${SCRIPT_URL}?dates=1`);
+      const res = await fetchWithTimeout(`${SCRIPT_URL}?dates=1`);
       const data = await res.json();
       return data.dates || [];
     } catch (e) {
@@ -812,6 +824,9 @@
     });
   }
 
+  const progressCountEl = document.getElementById('progressCount');
+  const progressFillEl = document.getElementById('progressFill');
+
   function updateProgress() {
     const pageItems = document.querySelectorAll(
       `.section[data-page="${currentPage}"] .item`,
@@ -821,9 +836,8 @@
       if (el.classList.contains('filled')) done++;
     });
     const total = pageItems.length;
-    document.getElementById('progressCount').textContent = `${done} / ${total}`;
-    document.getElementById('progressFill').style.width =
-      total > 0 ? `${(done / total) * 100}%` : '0%';
+    progressCountEl.textContent = `${done} / ${total}`;
+    progressFillEl.style.width = total > 0 ? `${(done / total) * 100}%` : '0%';
   }
 
   const totalPages = DATA.length;
