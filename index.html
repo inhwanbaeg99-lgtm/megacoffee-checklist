@@ -361,7 +361,6 @@
     margin-bottom: 14px;
   }
   .admin-pin-row {
-    position: relative;
     width: 160px;
   }
   .admin-pass-input {
@@ -376,30 +375,11 @@
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 8px 34px 8px 0;
+    padding: 8px 0;
     box-sizing: border-box;
   }
   .admin-pass-input:focus {
     outline: none;
-  }
-  .admin-pin-submit {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-    border: none;
-    border-radius: 999px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 800;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .admin-error {
     color: #e0483e;
@@ -541,7 +521,6 @@
             class="admin-pass-input"
             placeholder=""
           />
-          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">›</button>
         </div>
         <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
       </div>
@@ -976,7 +955,6 @@
   const adminInlineLogin = document.getElementById('adminInlineLogin');
   const adminPassInput = document.getElementById('adminPassInput');
   const adminError = document.getElementById('adminError');
-  const adminLoginBtn = document.getElementById('adminLoginBtn');
   const adminView = document.getElementById('adminView');
   const adminBackBtn = document.getElementById('adminBackBtn');
   const adminSummaryEl = document.getElementById('adminSummary');
@@ -1151,7 +1129,9 @@
   }
 
   eyebrowBtn.addEventListener('click', openAdminLogin);
-  adminLoginBtn.addEventListener('click', tryAdminLogin);
+  adminPassInput.addEventListener('input', () => {
+    if (adminPassInput.value.length >= ADMIN_PIN.length) tryAdminLogin();
+  });
   adminPassInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') tryAdminLogin();
     if (e.key === 'Escape') closeAdminLogin();
