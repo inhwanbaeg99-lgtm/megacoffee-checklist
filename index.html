@@ -97,6 +97,7 @@
   .eyebrow {
     display: flex;
     align-items: center;
+    height: 34px;
     margin-bottom: 14px;
   }
   .eyebrow[hidden] {
@@ -358,13 +359,17 @@
   }
 
   .admin-inline-login {
+    position: relative;
+    height: 34px;
     margin-bottom: 14px;
   }
   .admin-pin-row {
     width: 184px;
+    height: 100%;
   }
   .admin-pass-input {
     width: 100%;
+    height: 100%;
     text-align: center;
     font-family: inherit;
     font-size: 16px;
@@ -375,17 +380,20 @@
     background: var(--paper);
     border: none;
     border-radius: 8px;
-    padding: 8px 0;
+    padding: 0;
     box-sizing: border-box;
   }
   .admin-pass-input:focus {
     outline: none;
   }
   .admin-error {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
     color: #e0483e;
     font-size: 12px;
     font-weight: 600;
-    margin-top: 8px;
   }
   .admin-btn {
     flex: 1;
@@ -965,7 +973,7 @@
     adminError.hidden = true;
     eyebrowWrap.hidden = true;
     adminInlineLogin.hidden = false;
-    setTimeout(() => adminPassInput.focus(), 50);
+    adminPassInput.focus();
   }
   function closeAdminLogin() {
     adminInlineLogin.hidden = true;
