@@ -444,6 +444,34 @@
     margin-bottom: 16px;
     box-sizing: border-box;
   }
+  .admin-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .admin-tab {
+    flex: 1;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--ink-sub);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .admin-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .admin-empty {
+    padding: 28px 2px;
+    text-align: center;
+    color: var(--ink-sub);
+    font-size: 14px;
+  }
   .admin-page-label {
     font-size: 12px;
     font-weight: 700;
@@ -529,6 +557,10 @@
       <button class="admin-btn" id="adminBackBtn">체크리스트로</button>
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
+    <div class="admin-tabs" id="adminTabs">
+      <button type="button" class="admin-tab active" data-tab="history">저장된 발주내역</button>
+      <button type="button" class="admin-tab" data-tab="reorder">추가 발주</button>
+    </div>
     <div id="adminSummary"></div>
   </div>
 
@@ -959,6 +991,12 @@
     return m ? parseInt(m[0], 10) : null;
   }
 
+  function parseTargetParts(qty) {
+    const m = String(qty).match(/^(\d+)(.*)$/);
+    if (!m) return { num: null, unit: '' };
+    return { num: parseInt(m[1], 10), unit: m[2].trim() };
+  }
+
   function formatSavedValue(item, valuesMap) {
     const raw = valuesMap[item._id];
     if (raw === undefined || raw === '' || raw === null) {
@@ -997,17 +1035,79 @@
     });
   }
 
+  function buildReorderSummary(valuesMap) {
+    adminSummaryEl.innerHTML = '';
+    let any = false;
+
+    DATA.forEach((items, pageIdx) => {
+      const shortageItems = items.filter(
+        (item) => formatSavedValue(item, valuesMap).cls === 'a-under',
+      );
+      if (!shortageItems.length) return;
+      any = true;
+
+      const pageLabel = document.createElement('div');
+      pageLabel.className = 'admin-page-label';
+      pageLabel.textContent = `${pageIdx + 1} 페이지`;
+      adminSummaryEl.appendChild(pageLabel);
+
+      shortageItems.forEach((item) => {
+        const raw = valuesMap[item._id];
+        const rawNum = Number(raw);
+        let text;
+        if (item.segments) {
+          text = `${raw} / ${item.segments}`;
+        } else {
+          const { num: target, unit } = parseTargetParts(item.qty);
+          const missing = target !== null ? target - rawNum : null;
+          text = missing !== null ? `${missing}${unit} 발주` : '발주 필요';
+        }
+        const row = document.createElement('div');
+        row.className = 'admin-row';
+        row.innerHTML = `
+          <span class="a-label">${item.label}</span>
+          <span class="a-value a-under">${text}</span>
+        `;
+        adminSummaryEl.appendChild(row);
+      });
+    });
+
+    if (!any) {
+      adminSummaryEl.innerHTML = '<div class="admin-empty">발주가 필요한 항목이 없습니다</div>';
+    }
+  }
+
+  let adminTab = 'history';
+  let lastValuesMap = {};
+  const adminTabBtns = document.querySelectorAll('.admin-tab');
+
+  function renderAdminTab() {
+    if (adminTab === 'reorder') buildReorderSummary(lastValuesMap);
+    else buildAdminSummary(lastValuesMap);
+  }
+
+  adminTabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      adminTab = btn.dataset.tab;
+      adminTabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      renderAdminTab();
+    });
+  });
+
   async function loadAdminDate(date) {
     adminSummaryEl.innerHTML = '<div class="admin-page-label">불러오는 중...</div>';
     const remote = await fetchDateValues(date);
-    const valuesMap = remote || (date === state.date ? state.values : {});
-    buildAdminSummary(valuesMap);
+    lastValuesMap = remote || (date === state.date ? state.values : {});
+    renderAdminTab();
   }
 
   async function enterAdminView() {
     sheetEl.style.display = 'none';
     bottomNav.style.display = 'none';
     adminView.hidden = false;
+
+    adminTab = 'history';
+    adminTabBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === 'history'));
 
     adminDateSelect.innerHTML = `<option value="${state.date}">${state.date}</option>`;
     adminDateSelect.value = state.date;
