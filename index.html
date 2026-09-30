@@ -553,13 +553,13 @@
 
   <div class="admin-view" id="adminView" hidden>
     <div class="admin-view-header">
-      <div class="admin-view-title">저장된 발주 내역</div>
+      <div class="admin-view-title">MGC · 춘천온의파크점</div>
       <button class="admin-btn" id="adminBackBtn">체크리스트로</button>
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div class="admin-tabs" id="adminTabs">
-      <button type="button" class="admin-tab active" data-tab="history">저장된 발주내역</button>
-      <button type="button" class="admin-tab" data-tab="reorder">추가 발주</button>
+      <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
+      <button type="button" class="admin-tab" data-tab="history">저장된 발주내역</button>
     </div>
     <div id="adminSummary"></div>
   </div>
@@ -1077,7 +1077,7 @@
     }
   }
 
-  let adminTab = 'history';
+  let adminTab = 'reorder';
   let lastValuesMap = {};
   const adminTabBtns = document.querySelectorAll('.admin-tab');
 
@@ -1106,8 +1106,8 @@
     bottomNav.style.display = 'none';
     adminView.hidden = false;
 
-    adminTab = 'history';
-    adminTabBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === 'history'));
+    adminTab = 'reorder';
+    adminTabBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === 'reorder'));
 
     adminDateSelect.innerHTML = `<option value="${state.date}">${state.date}</option>`;
     adminDateSelect.value = state.date;
