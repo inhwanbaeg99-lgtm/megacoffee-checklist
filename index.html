@@ -185,7 +185,7 @@
     display: flex;
     align-items: baseline;
     gap: 1px;
-    font-size: 14.5px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--ink);
     white-space: nowrap;
@@ -781,7 +781,7 @@
           `
         : `
             <div class="qty-wrap">
-              <span class="paren">(</span><input
+              <input
                 type="text"
                 inputmode="numeric"
                 pattern="[0-9]*"
@@ -789,7 +789,7 @@
                 class="qty-input"
                 placeholder="0"
                 aria-label="${item.label} 발주 개수"
-              /><span class="paren">/</span><span class="qty-target">${item.qty}</span><span class="paren">)</span>
+              /><span class="paren">/</span><span class="qty-target">${item.qty}</span>
             </div>
           `;
 
