@@ -453,7 +453,7 @@
     border: none;
     border-radius: 10px;
     background: var(--paper);
-    color: var(--ink-sub);
+    color: var(--ink);
     font-family: inherit;
     font-size: 13px;
     font-weight: 700;
@@ -468,6 +468,29 @@
     text-align: center;
     color: var(--ink-sub);
     font-size: 14px;
+  }
+  .admin-loading {
+    display: flex;
+    justify-content: center;
+    padding: 48px 2px;
+  }
+  .admin-spinner {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 3px solid var(--line);
+    border-top-color: var(--accent);
+    animation: admin-spin 0.7s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .admin-spinner {
+      animation: none;
+    }
+  }
+  @keyframes admin-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   .admin-page-label {
     font-size: 12px;
@@ -1089,7 +1112,7 @@
   });
 
   async function loadAdminDate(date) {
-    adminSummaryEl.innerHTML = '<div class="admin-page-label">불러오는 중...</div>';
+    adminSummaryEl.innerHTML = '<div class="admin-loading"><div class="admin-spinner"></div></div>';
     const remote = await fetchDateValues(date);
     lastValuesMap = remote || (date === state.date ? state.values : {});
     renderAdminTab();
