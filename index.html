@@ -340,24 +340,20 @@
   }
   .save-btn {
     display: none;
-    flex: 1;
-    max-width: 220px;
-    height: 36px;
+    width: 100%;
+    height: 44px;
     border: none;
     border-radius: 999px;
     background: var(--accent);
     color: #fff;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.02em;
     cursor: pointer;
+    margin-top: 4px;
   }
-  .bottom-nav.at-end .save-btn {
+  .save-btn.visible {
     display: block;
-  }
-  .bottom-nav.at-end .page-dots,
-  .bottom-nav.at-end #nextBtn {
-    display: none;
   }
 
   .admin-inline-login {
@@ -519,11 +515,11 @@
         <button class="page-btn" id="prevBtn" aria-label="이전 페이지">‹</button>
         <div class="page-dots" id="pageDots"></div>
         <button class="page-btn" id="nextBtn" aria-label="다음 페이지">›</button>
-        <button class="save-btn" id="saveBtn">Save</button>
       </div>
     </div>
 
     <div id="sections"></div>
+    <button class="save-btn" id="saveBtn">Save</button>
   </div>
 
   <div class="admin-view" id="adminView" hidden>
@@ -871,7 +867,7 @@
     });
     dotEls.forEach((dot, i) => dot.classList.toggle('active', i + 1 === currentPage));
     prevBtn.disabled = currentPage === 1;
-    bottomNav.classList.toggle('at-end', currentPage === totalPages);
+    saveBtn.classList.toggle('visible', currentPage === totalPages);
     updateProgress();
     window.scrollTo({ top: 0 });
   }
