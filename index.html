@@ -561,7 +561,7 @@
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div class="admin-tabs" id="adminTabs">
       <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
-      <button type="button" class="admin-tab" data-tab="history">저장된 발주내역</button>
+      <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
     </div>
     <div id="adminSummary"></div>
   </div>
@@ -1062,7 +1062,7 @@
         } else {
           const { num: target, unit } = parseTargetParts(item.qty);
           const missing = target !== null ? target - rawNum : null;
-          text = missing !== null ? `${missing}${unit} 발주` : '발주 필요';
+          text = missing !== null ? `${missing}${unit}` : '발주 필요';
         }
         const row = document.createElement('div');
         row.className = 'admin-row';
