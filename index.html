@@ -850,6 +850,12 @@
           row.classList.toggle('filled', input.value.trim() !== '');
           updateProgress();
         });
+        input.addEventListener('focus', () => {
+          input.placeholder = '';
+        });
+        input.addEventListener('blur', () => {
+          if (input.value === '') input.placeholder = '0';
+        });
 
         itemRefs[id] = { item, row, input };
       }
