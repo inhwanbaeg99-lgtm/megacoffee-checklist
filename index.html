@@ -366,36 +366,33 @@
     gap: 10px;
   }
   .admin-pass-input {
-    width: 140px;
+    flex: 1;
+    max-width: 160px;
+    text-align: center;
     font-family: inherit;
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    background: none;
-    border: none;
-    border-bottom: 2px solid var(--line);
-    padding: 0 0 3px;
-    box-sizing: border-box;
-  }
-  .admin-pass-input::placeholder {
-    color: var(--line);
+    font-size: 16px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2em;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 0;
+    box-sizing: border-box;
   }
   .admin-pass-input:focus {
     outline: none;
-    border-bottom-color: var(--accent);
   }
   .admin-pin-submit {
     flex: 0 0 auto;
     width: 34px;
     height: 34px;
     border: none;
-    border-radius: 999px;
+    border-radius: 10px;
     background: var(--accent);
     color: #fff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
@@ -541,9 +538,9 @@
             autocomplete="off"
             id="adminPassInput"
             class="admin-pass-input"
-            placeholder="PIN"
+            placeholder=""
           />
-          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">›</button>
+          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">✓</button>
         </div>
         <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
       </div>
@@ -1157,6 +1154,11 @@
   adminPassInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') tryAdminLogin();
     if (e.key === 'Escape') closeAdminLogin();
+  });
+  document.addEventListener('click', (e) => {
+    if (adminInlineLogin.hidden) return;
+    if (e.target === eyebrowBtn || adminInlineLogin.contains(e.target)) return;
+    closeAdminLogin();
   });
   adminBackBtn.addEventListener('click', exitAdminView);
 
