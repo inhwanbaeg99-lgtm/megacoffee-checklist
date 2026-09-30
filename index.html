@@ -361,7 +361,7 @@
     margin-bottom: 14px;
   }
   .admin-pin-row {
-    width: 160px;
+    width: 184px;
   }
   .admin-pass-input {
     width: 100%;
@@ -373,7 +373,7 @@
     letter-spacing: 0.2em;
     color: var(--ink);
     background: var(--paper);
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 8px;
     padding: 8px 0;
     box-sizing: border-box;
@@ -428,7 +428,7 @@
     font-weight: 700;
     color: var(--ink);
     background: var(--paper);
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 10px;
     padding: 10px 28px 10px 12px;
     margin-bottom: 16px;
@@ -442,7 +442,7 @@
   .admin-tab {
     flex: 1;
     height: 36px;
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 10px;
     background: var(--paper);
     color: var(--ink-sub);
@@ -453,7 +453,6 @@
   }
   .admin-tab.active {
     background: var(--accent);
-    border-color: var(--accent);
     color: #fff;
   }
   .admin-empty {
@@ -889,7 +888,8 @@
       el.style.display = Number(el.dataset.page) === currentPage ? '' : 'none';
     });
     dotEls.forEach((dot, i) => dot.classList.toggle('active', i + 1 === currentPage));
-    prevBtn.disabled = currentPage === 1;
+    prevBtn.style.visibility = currentPage === 1 ? 'hidden' : 'visible';
+    nextBtn.style.visibility = currentPage === totalPages ? 'hidden' : 'visible';
     saveBtn.classList.toggle('visible', currentPage === totalPages);
     updateProgress();
     window.scrollTo({ top: 0 });
