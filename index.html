@@ -358,36 +358,55 @@
   }
 
   .admin-inline-login {
-    width: 220px;
     margin-bottom: 14px;
   }
+  .admin-pin-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   .admin-pass-input {
-    width: 100%;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 700;
+    width: 140px;
+    font-family: inherit;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.2em;
     color: var(--ink);
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid var(--line);
+    padding: 0 0 3px;
     box-sizing: border-box;
+  }
+  .admin-pass-input::placeholder {
+    color: var(--line);
+    font-weight: 700;
   }
   .admin-pass-input:focus {
     outline: none;
+    border-bottom-color: var(--accent);
+  }
+  .admin-pin-submit {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .admin-error {
     color: #e0483e;
     font-size: 12px;
     font-weight: 600;
-    text-align: center;
-    margin-top: 8px;
-  }
-  .admin-inline-actions {
-    display: flex;
-    gap: 6px;
     margin-top: 8px;
   }
   .admin-btn {
@@ -400,15 +419,6 @@
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-  }
-  .admin-inline-actions .admin-btn {
-    height: 30px;
-    border-radius: 8px;
-    font-size: 11.5px;
-  }
-  .admin-btn.ghost {
-    background: var(--paper);
-    color: var(--ink-sub);
   }
 
   .admin-view {
@@ -523,20 +533,19 @@
         <button type="button" class="eyebrow-btn" id="eyebrowBtn">MGC · 춘천온의파크점</button>
       </div>
       <div class="admin-inline-login" id="adminInlineLogin" hidden>
-        <input
-          type="password"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          autocomplete="off"
-          id="adminPassInput"
-          class="admin-pass-input"
-          placeholder=""
-        />
-        <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
-        <div class="admin-inline-actions">
-          <button class="admin-btn ghost" id="adminCancelBtn">취소</button>
-          <button class="admin-btn" id="adminLoginBtn">로그인</button>
+        <div class="admin-pin-row">
+          <input
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="off"
+            id="adminPassInput"
+            class="admin-pass-input"
+            placeholder="PIN"
+          />
+          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">›</button>
         </div>
+        <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
       </div>
       <div class="progress-row">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -969,7 +978,6 @@
   const adminInlineLogin = document.getElementById('adminInlineLogin');
   const adminPassInput = document.getElementById('adminPassInput');
   const adminError = document.getElementById('adminError');
-  const adminCancelBtn = document.getElementById('adminCancelBtn');
   const adminLoginBtn = document.getElementById('adminLoginBtn');
   const adminView = document.getElementById('adminView');
   const adminBackBtn = document.getElementById('adminBackBtn');
@@ -1058,7 +1066,7 @@
         const rawNum = Number(raw);
         let text;
         if (item.segments) {
-          text = `${raw} / ${item.segments}`;
+          text = '발주';
         } else {
           const { num: target, unit } = parseTargetParts(item.qty);
           const missing = target !== null ? target - rawNum : null;
@@ -1145,10 +1153,10 @@
   }
 
   eyebrowBtn.addEventListener('click', openAdminLogin);
-  adminCancelBtn.addEventListener('click', closeAdminLogin);
   adminLoginBtn.addEventListener('click', tryAdminLogin);
   adminPassInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') tryAdminLogin();
+    if (e.key === 'Escape') closeAdminLogin();
   });
   adminBackBtn.addEventListener('click', exitAdminView);
 
