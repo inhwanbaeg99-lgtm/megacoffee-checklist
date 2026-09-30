@@ -427,32 +427,33 @@
   }
   .admin-view .admin-btn {
     flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    padding: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0 0 0 9px;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     overflow: hidden;
     white-space: nowrap;
-    transition: width 0.2s ease;
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .admin-view .admin-btn svg {
     flex: 0 0 auto;
   }
   .admin-btn-label {
+    display: inline-block;
     max-width: 0;
     margin-left: 0;
     font-size: 13px;
     font-weight: 700;
     opacity: 0;
     overflow: hidden;
-    transition: max-width 0.2s ease, opacity 0.15s ease, margin-left 0.2s ease;
+    transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease,
+      margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .admin-view .admin-btn.expanded {
-    width: auto;
-    padding: 0 16px 0 14px;
+    width: 104px;
   }
   .admin-view .admin-btn.expanded .admin-btn-label {
     max-width: 70px;
@@ -461,8 +462,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .admin-view .admin-btn:hover {
-      width: auto;
-      padding: 0 16px 0 14px;
+      width: 104px;
     }
     .admin-view .admin-btn:hover .admin-btn-label {
       max-width: 70px;
