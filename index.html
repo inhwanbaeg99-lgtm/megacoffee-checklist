@@ -429,46 +429,11 @@
     flex: 0 0 auto;
     width: 36px;
     height: 36px;
-    padding: 0 0 0 9px;
+    padding: 0;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
-    overflow: hidden;
-    white-space: nowrap;
-    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .admin-view .admin-btn svg {
-    flex: 0 0 auto;
-  }
-  .admin-btn-label {
-    display: inline-block;
-    max-width: 0;
-    margin-left: 0;
-    font-size: 13px;
-    font-weight: 700;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease,
-      margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .admin-view .admin-btn.expanded {
-    width: 104px;
-  }
-  .admin-view .admin-btn.expanded .admin-btn-label {
-    max-width: 70px;
-    margin-left: 6px;
-    opacity: 1;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .admin-view .admin-btn:hover {
-      width: 104px;
-    }
-    .admin-view .admin-btn:hover .admin-btn-label {
-      max-width: 70px;
-      margin-left: 6px;
-      opacity: 1;
-    }
+    justify-content: center;
   }
   .admin-date-select {
     width: 100%;
@@ -620,7 +585,6 @@
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />
         </svg>
-        <span class="admin-btn-label">Logout</span>
       </button>
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
@@ -1221,24 +1185,7 @@
     if (e.target === eyebrowBtn || adminInlineLogin.contains(e.target)) return;
     closeAdminLogin();
   });
-  const hoverCapable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  let backBtnCollapseTimer = null;
-  adminBackBtn.addEventListener('click', () => {
-    if (hoverCapable) {
-      exitAdminView();
-      return;
-    }
-    if (!adminBackBtn.classList.contains('expanded')) {
-      adminBackBtn.classList.add('expanded');
-      clearTimeout(backBtnCollapseTimer);
-      backBtnCollapseTimer = setTimeout(() => {
-        adminBackBtn.classList.remove('expanded');
-      }, 5000);
-    } else {
-      clearTimeout(backBtnCollapseTimer);
-      exitAdminView();
-    }
-  });
+  adminBackBtn.addEventListener('click', exitAdminView);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
