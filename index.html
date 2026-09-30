@@ -361,13 +361,11 @@
     margin-bottom: 14px;
   }
   .admin-pin-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    position: relative;
+    width: 160px;
   }
   .admin-pass-input {
-    flex: 1;
-    max-width: 160px;
+    width: 100%;
     text-align: center;
     font-family: inherit;
     font-size: 16px;
@@ -378,21 +376,24 @@
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 8px 0;
+    padding: 8px 34px 8px 0;
     box-sizing: border-box;
   }
   .admin-pass-input:focus {
     outline: none;
   }
   .admin-pin-submit {
-    flex: 0 0 auto;
-    width: 34px;
-    height: 34px;
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
     border: none;
-    border-radius: 10px;
+    border-radius: 999px;
     background: var(--accent);
     color: #fff;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
@@ -540,7 +541,7 @@
             class="admin-pass-input"
             placeholder=""
           />
-          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">✓</button>
+          <button type="button" class="admin-pin-submit" id="adminLoginBtn" aria-label="로그인">›</button>
         </div>
         <div class="admin-error" id="adminError" hidden>PIN이 올바르지 않습니다</div>
       </div>
