@@ -414,7 +414,7 @@
   .admin-view {
     max-width: 640px;
     margin: 0 auto;
-    padding: 24px 16px 60px;
+    padding: 18px 16px 60px;
   }
   .admin-view-header {
     display: flex;
@@ -550,7 +550,7 @@
     </div>
 
     <div id="sections"></div>
-    <button class="save-btn" id="saveBtn">Save</button>
+    <button class="save-btn" id="saveBtn">저장</button>
   </div>
 
   <div class="admin-view" id="adminView" hidden>
@@ -927,7 +927,7 @@
       pushValue(state.date, id, ref.item.label, val);
     });
     const original = saveBtn.textContent;
-    saveBtn.textContent = 'Saved ✓';
+    saveBtn.textContent = '저장됨 ✓';
     setTimeout(() => {
       saveBtn.textContent = original;
     }, 1200);
