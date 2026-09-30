@@ -342,7 +342,7 @@
     display: none;
     width: 100%;
     max-width: 220px;
-    height: 36px;
+    height: 40px;
     border: none;
     border-radius: 999px;
     background: var(--accent);
@@ -861,6 +861,8 @@
   }
   const dotEls = pageDotsEl.querySelectorAll('.page-dot');
 
+  const PAGE_KEY = 'megacoffee-checklist-page';
+
   function showPage(n) {
     currentPage = Math.min(totalPages, Math.max(1, n));
     sectionEls.forEach((el) => {
@@ -871,6 +873,12 @@
     saveBtn.classList.toggle('visible', currentPage === totalPages);
     updateProgress();
     window.scrollTo({ top: 0 });
+    localStorage.setItem(PAGE_KEY, String(currentPage));
+  }
+
+  function loadSavedPage() {
+    const p = parseInt(localStorage.getItem(PAGE_KEY), 10);
+    return p >= 1 && p <= totalPages ? p : 1;
   }
 
   prevBtn.addEventListener('click', () => showPage(currentPage - 1));
@@ -891,7 +899,7 @@
     }, 1200);
   });
 
-  showPage(1);
+  showPage(loadSavedPage());
   syncTodayFromServer();
 
   function resetForNewDay(newDate) {
@@ -906,7 +914,7 @@
         ref.resetSeg();
       }
     });
-    updateProgress();
+    showPage(1);
     syncTodayFromServer();
   }
 
