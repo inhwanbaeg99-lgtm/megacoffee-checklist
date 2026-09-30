@@ -7,6 +7,13 @@
 <link rel="dns-prefetch" href="https://script.google.com" />
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
 <link rel="dns-prefetch" href="https://script.googleusercontent.com" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#3182f6" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="발주 체크리스트" />
 <title>발주 체크리스트</title>
 <style>
   :root {
@@ -1037,6 +1044,12 @@
     if (e.key === 'Enter') tryAdminLogin();
   });
   adminBackBtn.addEventListener('click', exitAdminView);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 
 </body>
