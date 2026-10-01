@@ -388,6 +388,7 @@
     border-radius: 8px;
     padding: 0;
     box-sizing: border-box;
+    transition: background 0.4s ease, color 0.4s ease;
   }
   .admin-pass-input:focus {
     outline: none;
@@ -1192,7 +1193,7 @@
       adminPassInput.focus();
       shakeRevertTimer = setTimeout(() => {
         adminPassInput.classList.remove('shake');
-      }, 2000);
+      }, 900);
     }
   }
 
