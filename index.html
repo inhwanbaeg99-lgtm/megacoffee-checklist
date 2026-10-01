@@ -1178,16 +1178,21 @@
     loadAdminDate(adminDateSelect.value);
   });
 
+  let shakeRevertTimer = null;
   function tryAdminLogin() {
     if (adminPassInput.value === ADMIN_PIN) {
       closeAdminLogin();
       enterAdminView();
     } else {
       adminPassInput.value = '';
+      clearTimeout(shakeRevertTimer);
       adminPassInput.classList.remove('shake');
       void adminPassInput.offsetWidth;
       adminPassInput.classList.add('shake');
       adminPassInput.focus();
+      shakeRevertTimer = setTimeout(() => {
+        adminPassInput.classList.remove('shake');
+      }, 2000);
     }
   }
 
