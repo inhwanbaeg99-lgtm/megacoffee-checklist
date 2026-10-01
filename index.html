@@ -103,6 +103,92 @@
   .eyebrow[hidden] {
     display: none;
   }
+  .help-btn {
+    position: absolute;
+    top: 24px;
+    right: 4px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink-sub);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 11;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .help-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--bg);
+    clip-path: circle(0px at var(--origin-x, 100%) var(--origin-y, 0%));
+    transition: clip-path 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .help-overlay.open {
+    clip-path: circle(150% at var(--origin-x, 100%) var(--origin-y, 0%));
+    pointer-events: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .help-overlay {
+      transition: none;
+    }
+  }
+  .help-content {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+  .help-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .help-title {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .help-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink-sub);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-section {
+    margin-bottom: 22px;
+  }
+  .help-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .help-section-body {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
   .eyebrow-btn {
     border: none;
     background: none;
@@ -550,6 +636,7 @@
 
   <div class="sheet" id="sheet">
     <div class="top-header">
+      <button type="button" class="help-btn" id="helpBtn" aria-label="도움말">?</button>
       <div class="eyebrow" id="eyebrowWrap">
         <button type="button" class="eyebrow-btn" id="eyebrowBtn">MGC · 춘천온의파크점</button>
       </div>
@@ -599,6 +686,31 @@
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
     </div>
     <div id="adminSummary"></div>
+  </div>
+
+  <div class="help-overlay" id="helpOverlay">
+    <div class="help-content">
+      <div class="help-header">
+        <div class="help-title">도움말</div>
+        <button type="button" class="help-close-btn" id="helpCloseBtn" aria-label="닫기">✕</button>
+      </div>
+      <div class="help-section">
+        <div class="help-section-label">수량 입력</div>
+        <div class="help-section-body">입력칸에 오늘 창고에 남아있는 개수를 입력하세요. 숫자 오른쪽에 표시된 수량이 기준 수량입니다.</div>
+      </div>
+      <div class="help-section">
+        <div class="help-section-label">저장하기</div>
+        <div class="help-section-body">마지막 페이지의 저장 버튼을 눌러야 입력한 내용이 저장되고 다른 기기에도 반영됩니다. 저장 버튼을 누르기 전까지는 저장되지 않아요.</div>
+      </div>
+      <div class="help-section">
+        <div class="help-section-label">자동 초기화</div>
+        <div class="help-section-body">매일 자정(한국시간)이 되면 체크리스트가 자동으로 초기화됩니다.</div>
+      </div>
+      <div class="help-section">
+        <div class="help-section-label">관리자 메뉴</div>
+        <div class="help-section-body">상단의 매장명을 누르면 PIN 입력창이 나옵니다. 올바른 PIN을 입력하면 추가로 발주해야 할 품목과 전체 재고 현황을 확인할 수 있습니다.</div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -1198,6 +1310,27 @@
     closeAdminLogin();
   });
   adminBackBtn.addEventListener('click', exitAdminView);
+
+  /* ---------- Help overlay ---------- */
+  const helpBtn = document.getElementById('helpBtn');
+  const helpOverlay = document.getElementById('helpOverlay');
+  const helpCloseBtn = document.getElementById('helpCloseBtn');
+
+  function openHelp() {
+    const rect = helpBtn.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    helpOverlay.style.setProperty('--origin-x', `${x}px`);
+    helpOverlay.style.setProperty('--origin-y', `${y}px`);
+    helpOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeHelp() {
+    helpOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  helpBtn.addEventListener('click', openHelp);
+  helpCloseBtn.addEventListener('click', closeHelp);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
