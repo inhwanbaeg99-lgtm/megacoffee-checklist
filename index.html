@@ -552,11 +552,45 @@
   .admin-row .a-value.a-over {
     color: var(--accent);
   }
+  .app-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  .app-gate-title {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .app-gate-input {
+    width: 140px;
+    height: 40px;
+  }
 </style>
 </head>
 <body>
 
-  <div class="sheet" id="sheet">
+  <div class="app-gate" id="appGate">
+    <div class="app-gate-title">MGC · 춘천온의파크점</div>
+    <input
+      type="password"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      autocomplete="off"
+      id="appGatePin"
+      class="admin-pass-input app-gate-input"
+      placeholder=""
+    />
+  </div>
+
+  <div class="sheet" id="sheet" hidden>
     <div class="top-header">
       <div class="eyebrow" id="eyebrowWrap">
         <button type="button" class="eyebrow-btn" id="eyebrowBtn">MGC · 춘천온의파크점</button>
@@ -1024,6 +1058,24 @@
   /* ---------- Admin login & summary view ---------- */
   const ADMIN_PIN = '1234';
   const sheetEl = document.getElementById('sheet');
+
+  /* ---------- App gate (login to enter) ---------- */
+  const appGate = document.getElementById('appGate');
+  const appGatePin = document.getElementById('appGatePin');
+  appGatePin.focus();
+  appGatePin.addEventListener('input', () => {
+    appGatePin.classList.remove('shake');
+    if (appGatePin.value.length < ADMIN_PIN.length) return;
+    if (appGatePin.value === ADMIN_PIN) {
+      appGate.remove();
+      sheetEl.hidden = false;
+    } else {
+      appGatePin.value = '';
+      void appGatePin.offsetWidth;
+      appGatePin.classList.add('shake');
+    }
+  });
+
   const eyebrowWrap = document.getElementById('eyebrowWrap');
   const eyebrowBtn = document.getElementById('eyebrowBtn');
   const adminInlineLogin = document.getElementById('adminInlineLogin');
