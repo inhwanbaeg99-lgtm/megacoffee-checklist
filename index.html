@@ -127,7 +127,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: var(--bg);
+    background: var(--paper);
     clip-path: circle(0px at var(--origin-x, 100%) var(--origin-y, 0%));
     transition: clip-path 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
@@ -160,11 +160,12 @@
     color: var(--ink);
   }
   .help-close-btn {
-    width: 32px;
-    height: 32px;
+    position: fixed;
+    width: 30px;
+    height: 30px;
     border: none;
     border-radius: 999px;
-    background: var(--paper);
+    background: transparent;
     color: var(--ink-sub);
     font-size: 16px;
     font-weight: 700;
@@ -1322,6 +1323,8 @@
     const y = rect.top + rect.height / 2;
     helpOverlay.style.setProperty('--origin-x', `${x}px`);
     helpOverlay.style.setProperty('--origin-y', `${y}px`);
+    helpCloseBtn.style.top = `${rect.top}px`;
+    helpCloseBtn.style.left = `${rect.left}px`;
     helpOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
