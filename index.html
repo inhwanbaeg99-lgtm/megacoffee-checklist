@@ -861,6 +861,7 @@
             const val = btn.dataset.val;
             state.values[id] = val;
             selectSeg(val);
+            saveState();
             updateProgress();
           });
         });
@@ -879,6 +880,7 @@
           if (digitsOnly !== input.value) input.value = digitsOnly;
           state.values[id] = input.value;
           row.classList.toggle('filled', input.value.trim() !== '');
+          saveState();
           updateProgress();
         });
         input.addEventListener('focus', () => {
