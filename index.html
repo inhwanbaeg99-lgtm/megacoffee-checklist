@@ -787,21 +787,13 @@
   let currentPage = 1;
   const itemRefs = {};
 
-  function labelToId(label) {
-    let hash = 0;
-    for (let i = 0; i < label.length; i++) {
-      hash = (hash * 31 + label.charCodeAt(i)) | 0;
-    }
-    return 'item-' + (hash >>> 0).toString(36);
-  }
-
   DATA.forEach((items, pageIdx) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
     sectionEl.dataset.page = pageIdx + 1;
 
     items.forEach((item) => {
-      const id = labelToId(item.label);
+      const id = item.label;
       item._id = id;
 
       const row = document.createElement('div');

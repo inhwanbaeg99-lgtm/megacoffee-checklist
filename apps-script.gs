@@ -23,10 +23,11 @@ function normalizeDate_(val) {
   return String(val);
 }
 
-function findRow_(sheet, date, itemId) {
+// itemId는 프론트엔드 개편으로 바뀔 수 있어, 날짜+label(품목명)로 행을 찾는다
+function findRow_(sheet, date, label) {
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (normalizeDate_(data[i][0]) === date && String(data[i][1]) === itemId) {
+    if (normalizeDate_(data[i][0]) === date && String(data[i][2]) === label) {
       return i + 1; // 1-indexed row number
     }
   }
@@ -67,9 +68,9 @@ function doPost(e) {
   const label = body.label || '';
   const value = body.value;
 
-  const rowNum = findRow_(sheet, date, itemId);
+  const rowNum = findRow_(sheet, date, label);
   if (rowNum > 0) {
-    sheet.getRange(rowNum, 3).setValue(label);
+    sheet.getRange(rowNum, 2).setValue(itemId);
     sheet.getRange(rowNum, 4).setValue(value);
     sheet.getRange(rowNum, 5).setValue(now);
   } else {
@@ -102,7 +103,7 @@ function doGet(e) {
   const result = {};
   for (let i = 1; i < data.length; i++) {
     if (normalizeDate_(data[i][0]) === date) {
-      result[data[i][1]] = data[i][3];
+      result[data[i][2]] = data[i][3]; // label(품목명) 기준으로 반환
     }
   }
   return ContentService
