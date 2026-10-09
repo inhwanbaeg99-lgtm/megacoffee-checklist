@@ -1,6 +1,6 @@
 {
   "name": "메가커피 춘천온의파크점 발주 체크리스트",
-  "short_name": "발주 체크리스트",
+  "short_name": "MGC",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
