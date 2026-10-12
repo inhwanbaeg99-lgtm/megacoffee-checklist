@@ -559,6 +559,15 @@
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
+  .target-order-edit { font-size:16px !important; }
+  .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:12px -22px -16px; padding:14px 16px; border:0; border-top:1px solid var(--line); border-radius:0 0 16px 16px; background:var(--paper); color:var(--ink-sub); cursor:pointer; }
+  .target-delete { display:none; width:26px; height:26px; border:0; border-radius:50%; background:transparent; color:#e0483e; font:inherit; font-size:22px; padding:0; flex-shrink:0; touch-action:manipulation; }
+  .target-edit-page.order-editing .target-delete { display:inline-flex; align-items:center; justify-content:center; }
+  .drag-preview .target-delete { display:inline-flex; align-items:center; justify-content:center; }
+  .drag-preview { border:1px solid #000; }
+  .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
+  #addItemBack { width:44px; height:44px; }
+  #addItemBack svg { width:24px; height:24px; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: var(--paper); color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
@@ -568,7 +577,7 @@
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
-  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; background:var(--bg); border:1px solid var(--line); border-radius:10px; margin:8px 0; padding:10px 12px; }
+  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; background:var(--paper); border:1px solid #000; border-radius:10px; margin:8px 0; padding:10px 12px; }
   .target-edit-row.dragging { opacity: .2; }
   .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: var(--paper); border-radius: 10px; box-shadow: 0 8px 24px #0002; opacity: .96; will-change: transform; }
   .add-type-row { display: flex; gap: 8px; }
@@ -792,7 +801,7 @@
     for (const item of items) {
       if (!item || !Number.isInteger(item.page) || item.page < 1 || item.page > 5 ||
           typeof item.label !== 'string' || !item.label.trim() || item.label.length > 60 || /[<>&"']/.test(item.label) ||
-          [CUSTOM_ITEMS_ID, '__item_order__'].includes(item.label) ||
+          [CUSTOM_ITEMS_ID, '__item_order__', '__deleted_items__'].includes(item.label) ||
           (item.segments !== 3 && !/^\d{1,6}(개|박스|통|봉)$/.test(item.qty))) continue;
       if (DATA.flat().some(existing => existing.label === item.label)) continue;
       DATA[item.page-1].push(item.segments === 3 ? {label:item.label, segments:3, note:'1/3 이하시 발주'} : {label:item.label, qty:item.qty, ...(Number.isInteger(item.orderThreshold) && item.orderThreshold>=0 ? {orderThreshold:item.orderThreshold} : {})});
@@ -801,6 +810,16 @@
     return added;
   }
   addCustomItemsToData(customItems);
+  const DELETED_KEY = 'megacoffee-deleted-items-v1';
+  const DELETED_ID = '__deleted_items__';
+  let deletedItems=[];
+  try { const saved=JSON.parse(localStorage.getItem(DELETED_KEY)); if(Array.isArray(saved))deletedItems=saved; } catch {}
+  function applyDeletedItems() {
+    let changed=false;
+    DATA.forEach((items,index)=>{ const filtered=items.filter(item=>!deletedItems.includes(item.label)); if(filtered.length!==items.length){DATA[index]=filtered;changed=true;} });
+    return changed;
+  }
+  applyDeletedItems();
   const ORDER_KEY = 'megacoffee-item-order-v1';
   const ORDER_ID = '__item_order__';
   function applyItemOrder(order) {
@@ -1615,6 +1634,11 @@
         }
       } catch {}
     }
+    const deletedRecord=pendingValues[`${TARGETS_DATE}:${DELETED_ID}`]?.value ?? remote[DELETED_ID];
+    if(deletedRecord) {
+      try {const labels=typeof deletedRecord==='string'?JSON.parse(deletedRecord):deletedRecord;if(Array.isArray(labels)){deletedItems=labels.filter(label=>typeof label==='string');localStorage.setItem(DELETED_KEY,JSON.stringify(deletedItems));}}catch{}
+    }
+    if(applyDeletedItems()){renderChecklistItems();sectionEls=document.querySelectorAll('.section');showPage(currentPage);syncTodayFromServer();if(!targetEditor.hidden)closeQuantityKeypad();}
     const orderRecord = pendingValues[`${TARGETS_DATE}:${ORDER_ID}`]?.value ?? remote[ORDER_ID];
     if (orderRecord) {
       try {
@@ -1628,7 +1652,7 @@
       } catch {}
     }
     Object.entries(remote).forEach(([label, value]) => {
-      if ([CUSTOM_ITEMS_ID, ORDER_ID].includes(label)) return;
+      if ([CUSTOM_ITEMS_ID, ORDER_ID, DELETED_ID].includes(label)) return;
       if (pendingValues[`${TARGETS_DATE}:${label}`]) return;
       try { targetSettings[label] = typeof value === 'string' ? JSON.parse(value) : value; } catch {}
     });
@@ -1684,6 +1708,7 @@
     dragFrame=requestAnimationFrame(updateDragFrame);
   }
   targetEditorFields.addEventListener('pointerdown', event => {
+    if(event.target.closest('.target-delete')) return;
     const row=event.target.closest('.target-edit-row');
     const section=row?.closest('.target-edit-page');
     if(!section?.classList.contains('order-editing') || event.button>0) return;
@@ -1761,17 +1786,29 @@
         if (!editing) { applyOrderToChecklist(); flushPending().catch(() => {}); }
         refreshOrderButtons(section);
       });
-      tools.append(add, edit); section.appendChild(tools);
+      tools.appendChild(edit); section.appendChild(tools);
       items.forEach(item => {
         const row = document.createElement('div');
         row.className = 'target-edit-row';
         row.dataset.itemLabel = item.label;
+        const nameWrap=document.createElement('div');nameWrap.className='target-item-name';
+        const remove=document.createElement('button');remove.type='button';remove.className='target-delete';remove.textContent='−';remove.setAttribute('aria-label',`${item.label} 삭제`);
+        remove.addEventListener('click',()=>{
+          if(!deletedItems.includes(item.label))deletedItems.push(item.label);
+          localStorage.setItem(DELETED_KEY,JSON.stringify(deletedItems));
+          queueValue(TARGETS_DATE,DELETED_ID,DELETED_ID,JSON.stringify(deletedItems));
+          applyDeletedItems();row.remove();targetKeypad.hidden=true;activeTargetInput=null;
+          currentScrollItem=null;inputScrollSpace.style.height='0px';
+          orderChanged=true;applyOrderToChecklist();
+          flushPending().catch(()=>{});
+        });
         const label = document.createElement('label');
         label.textContent = item.label;
+        nameWrap.append(remove,label);
         if (item.segments) {
           const note = document.createElement('small');
           note.textContent = '1/3 선택 기준';
-          row.append(label, note);
+          row.append(nameWrap, note);
         } else {
           const input = document.createElement('input');
           input.type = 'number'; input.inputMode = 'none'; input.readOnly = true; input.min = '0'; input.max = '999999'; input.step = '1'; input.required = true;
@@ -1780,7 +1817,7 @@
           input.id = `target-${index}-${items.indexOf(item)}`;
           label.htmlFor = input.id;
           input.setAttribute('aria-label', `${item.label} 기준 수량`);
-          row.append(label, input);
+          row.append(nameWrap, input);
           if (item.orderThreshold !== undefined) {
             const note = document.createElement('label');
             note.textContent = '이 수량 이하일 때 발주';
@@ -1796,6 +1833,9 @@
         }
         section.appendChild(row);
       });
+      const addRow=document.createElement('button');addRow.type='button';addRow.className='target-page-add';addRow.setAttribute('aria-label','품목 추가');
+      addRow.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+      addRow.addEventListener('click',()=>openAddItem(index+1));section.appendChild(addRow);
     });
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(refreshOrderButtons);
     showTargetPage(1);
@@ -1869,7 +1909,7 @@
     const label = document.getElementById('newItemLabel').value.trim();
     const qty = document.getElementById('newItemQty').value;
     const status = document.getElementById('addItemStatus');
-    if (!label || /[<>&"']/.test(label) || [CUSTOM_ITEMS_ID, ORDER_ID].includes(label) || DATA.flat().some(item => item.label === label)) { status.textContent = '중복되지 않는 품목명을 입력해 주세요.'; return; }
+    if (!label || /[<>&"']/.test(label) || [CUSTOM_ITEMS_ID, ORDER_ID, DELETED_ID].includes(label) || deletedItems.includes(label) || DATA.flat().some(item => item.label === label)) { status.textContent = '중복되지 않는 품목명을 입력해 주세요.'; return; }
     if (newItemType === 'count' && !/^\d{1,6}$/.test(qty)) { status.textContent = '기준 수량을 입력해 주세요.'; return; }
     const invalid = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
     if (invalid) { status.textContent = '수정 중인 기준 수량을 먼저 입력해 주세요.'; return; }
