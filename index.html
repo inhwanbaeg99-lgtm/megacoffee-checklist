@@ -555,7 +555,8 @@
   .quantity-keypad[hidden] { display: none; }
   .quantity-keypad { width: 100%; background: transparent; color: var(--ink); padding: 12px 0 20px; }
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
-  html, body, body * { touch-action: manipulation; }
+  html, body, body * { touch-action: manipulation; scrollbar-width: none; }
+  ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
@@ -752,11 +753,15 @@
   const PENDING_KEY = 'megacoffee-pending-v1';
   let pendingValues = {};
   try { pendingValues = JSON.parse(localStorage.getItem(PENDING_KEY)) || {}; } catch {}
+  const confirmedValues = {};
   let savingPromise = null;
   let saveTimer = null;
   function persistPending() { localStorage.setItem(PENDING_KEY, JSON.stringify(pendingValues)); }
   function queueValue(date, itemId, label, value) {
-    pendingValues[`${date}:${itemId}`] = { date, itemId, label, value };
+    const key = `${date}:${itemId}`;
+    if (!pendingValues[key] && confirmedValues[key] === String(value)) return;
+    if (pendingValues[key] && String(pendingValues[key].value) === String(value)) return;
+    pendingValues[key] = { date, itemId, label, value };
     persistPending();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => flushPending().catch(() => {}), 800);
@@ -774,6 +779,7 @@
         if (!res.ok) throw new Error('서버 저장 실패');
         const result = await res.json();
         if (!result.ok) throw new Error('서버 저장 확인 실패');
+        confirmedValues[key] = String(entry.value);
         if (pendingValues[key] === entry) delete pendingValues[key];
         persistPending();
       }
@@ -787,7 +793,9 @@
     try {
       const res = await fetchWithTimeout(`${SCRIPT_URL}?date=${encodeURIComponent(date)}`);
       const data = await res.json();
-      return data.values || {};
+      const values = data.values || {};
+      Object.entries(values).forEach(([id, value]) => { confirmedValues[`${date}:${id}`] = String(value); });
+      return values;
     } catch (e) {
       return null;
     }
@@ -1162,6 +1170,10 @@
     if (firstInput) openQuantityKeypad(firstInput);
   }
 
+  const navigationStatus = document.createElement('div');
+  navigationStatus.className = 'required-message';
+  navigationStatus.setAttribute('role', 'status');
+  bottomNav.after(navigationStatus);
   let pageSaveInProgress = false;
   async function saveAndNavigate(targetPage, requireComplete) {
     if (pageSaveInProgress) return;
@@ -1181,7 +1193,8 @@
       return;
     }
     saveState();
-    Object.keys(state.values).forEach((id) => {
+    rows.forEach(row => {
+      const id = row.dataset.id;
       const ref = itemRefs[id];
       if (!ref) return;
       const val = state.values[id];
@@ -1194,13 +1207,20 @@
     bottomNav.inert = true;
     saveBtn.disabled = true;
     saveBtn.textContent = '저장 중…';
+    navigationStatus.textContent = '서버에 저장 중…';
+    let navigationTimeout;
     try {
-      await flushPending();
+      await Promise.race([flushPending(), new Promise((_, reject) => {
+        navigationTimeout = setTimeout(() => reject(new Error('저장 지연')), 20000);
+      })]);
+      navigationStatus.textContent = '';
       showPage(targetPage);
     } catch {
       saveBtn.textContent = '저장 실패 · 다시 눌러 주세요';
+      navigationStatus.textContent = '저장이 지연되거나 실패했습니다. 입력은 기기에 보관됩니다. 버튼을 다시 눌러 주세요.';
       return;
     } finally {
+      clearTimeout(navigationTimeout);
       pageSaveInProgress = false;
       prevBtn.disabled = nextBtn.disabled = false;
       bottomNav.inert = false;
