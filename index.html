@@ -558,13 +558,18 @@
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
-  .target-page-tools { display: flex; justify-content: flex-end; padding: 6px 0; }
+  .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   #addItemDialog { width: min(90vw, 360px); border: 0; border-radius: 16px; padding: 24px; background: var(--paper); color: var(--ink); font-family: inherit; }
   #addItemDialog::backdrop { background: #0005; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font: inherit; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
+  .order-controls { display: none; gap: 4px; grid-column: 1 / -1; justify-content: flex-end; }
+  .target-edit-page.order-editing .target-edit-row { grid-template-columns: minmax(0,1fr) 80px 72px; }
+  .target-edit-page.order-editing .order-controls { display: flex; grid-column: 3; grid-row: 1; }
+  .order-controls button { width: 36px; height: 32px; border: 0; border-radius: 8px; background: var(--bg); color: var(--ink); cursor: pointer; font-size: 18px; }
+  .order-controls button:disabled { opacity: .25; cursor: default; }
   .target-edit-page[hidden] { display: none; }
   .target-edit-row > label { font-size: 16px; font-weight: 700; line-height: 1.4; }
   .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
@@ -771,7 +776,7 @@
     for (const item of items) {
       if (!item || !Number.isInteger(item.page) || item.page < 1 || item.page > 5 ||
           typeof item.label !== 'string' || !item.label.trim() || item.label.length > 60 || /[<>&"']/.test(item.label) ||
-          item.label === CUSTOM_ITEMS_ID || !/^\d{1,6}(개|박스|통|봉)$/.test(item.qty)) continue;
+          [CUSTOM_ITEMS_ID, '__item_order__'].includes(item.label) || !/^\d{1,6}(개|박스|통|봉)$/.test(item.qty)) continue;
       if (DATA.flat().some(existing => existing.label === item.label)) continue;
       DATA[item.page-1].push({ label:item.label, qty:item.qty });
       added = true;
@@ -779,6 +784,25 @@
     return added;
   }
   addCustomItemsToData(customItems);
+  const ORDER_KEY = 'megacoffee-item-order-v1';
+  const ORDER_ID = '__item_order__';
+  function applyItemOrder(order) {
+    if (!Array.isArray(order)) return false;
+    let changed = false;
+    DATA.forEach((items, index) => {
+      if (!Array.isArray(order[index])) return;
+      const ordered = [];
+      for (const label of order[index]) {
+        const item = items.find(item => item.label === label);
+        if (item && !ordered.includes(item)) ordered.push(item);
+      }
+      ordered.push(...items.filter(item => !ordered.includes(item)));
+      if (ordered.some((item, i) => item !== items[i])) { items.splice(0, items.length, ...ordered); changed = true; }
+    });
+    return changed;
+  }
+  try { applyItemOrder(JSON.parse(localStorage.getItem(ORDER_KEY))); } catch {}
+
   const TARGETS_KEY = 'megacoffee-targets-v1';
   const TARGETS_DATE = 'settings';
   let targetSettings = {};
@@ -1556,8 +1580,20 @@
         }
       } catch {}
     }
+    const orderRecord = pendingValues[`${TARGETS_DATE}:${ORDER_ID}`]?.value ?? remote[ORDER_ID];
+    if (orderRecord) {
+      try {
+        const order = typeof orderRecord === 'string' ? JSON.parse(orderRecord) : orderRecord;
+        if (Array.isArray(order)) {
+          localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+          if (targetEditor.hidden && applyItemOrder(order)) {
+            renderChecklistItems(); sectionEls = document.querySelectorAll('.section'); showPage(currentPage); syncTodayFromServer();
+          }
+        }
+      } catch {}
+    }
     Object.entries(remote).forEach(([label, value]) => {
-      if (label === CUSTOM_ITEMS_ID) return;
+      if ([CUSTOM_ITEMS_ID, ORDER_ID].includes(label)) return;
       if (pendingValues[`${TARGETS_DATE}:${label}`]) return;
       try { targetSettings[label] = typeof value === 'string' ? JSON.parse(value) : value; } catch {}
     });
@@ -1569,7 +1605,43 @@
     refreshTargetLabels();
     if (!adminView.hidden && targetEditor.hidden) renderAdminTab();
   }
+  let orderChanged = false;
+  function refreshOrderButtons(section) {
+    const rows = [...section.querySelectorAll('.target-edit-row')];
+    rows.forEach((row, index) => {
+      row.querySelector('[data-move="up"]').disabled = index === 0;
+      row.querySelector('[data-move="down"]').disabled = index === rows.length-1;
+    });
+  }
+  function applyOrderToChecklist() {
+    if (!orderChanged) return;
+    renderChecklistItems(); sectionEls = document.querySelectorAll('.section'); showPage(currentPage); closeQuantityKeypad();
+    orderChanged = false;
+  }
+  targetEditorFields.addEventListener('click', event => {
+    const button = event.target.closest('[data-move]');
+    if (!button) return;
+    const row = button.closest('.target-edit-row');
+    const section = row.closest('.target-edit-page');
+    const rows = [...section.querySelectorAll('.target-edit-row')];
+    const index = rows.indexOf(row);
+    const adjacent = rows[index + (button.dataset.move === 'up' ? -1 : 1)];
+    if (!adjacent) return;
+    targetKeypad.hidden = true; activeTargetInput = null;
+    if (button.dataset.move === 'up') adjacent.before(row); else adjacent.after(row);
+    const page = Number(section.dataset.page)-1;
+    const orderedLabels = [...section.querySelectorAll('.target-edit-row')].map(row => row.dataset.itemLabel);
+    const items = DATA[page];
+    DATA[page] = orderedLabels.map(label => items.find(item => item.label === label));
+    const order = DATA.map(items => items.map(item => item.label));
+    localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+    queueValue(TARGETS_DATE, ORDER_ID, ORDER_ID, JSON.stringify(order));
+    orderChanged = true;
+    refreshOrderButtons(section);
+    row.scrollIntoView({block:'nearest'});
+  });
   function closeTargetEditor() {
+    applyOrderToChecklist();
     targetEditor.hidden = true;
     targetKeypad.hidden = true;
     activeTargetInput = null;
@@ -1600,10 +1672,20 @@
       const add = document.createElement('button');
       add.type = 'button'; add.className = 'target-add-btn'; add.textContent = '추가';
       add.addEventListener('click', () => openAddItem(index+1));
-      tools.appendChild(add); section.appendChild(tools);
+      const edit = document.createElement('button');
+      edit.type = 'button'; edit.className = 'target-add-btn target-order-edit'; edit.textContent = '편집';
+      edit.addEventListener('click', () => {
+        const editing = section.classList.toggle('order-editing');
+        edit.textContent = editing ? '완료' : '편집';
+        targetKeypad.hidden = true; activeTargetInput = null;
+        if (!editing) { applyOrderToChecklist(); flushPending().catch(() => {}); }
+        refreshOrderButtons(section);
+      });
+      tools.append(add, edit); section.appendChild(tools);
       items.forEach(item => {
         const row = document.createElement('div');
         row.className = 'target-edit-row';
+        row.dataset.itemLabel = item.label;
         const label = document.createElement('label');
         label.textContent = item.label;
         if (item.segments) {
@@ -1632,9 +1714,19 @@
             row.append(note, threshold);
           }
         }
+        const controls = document.createElement('div');
+        controls.className = 'order-controls';
+        for (const [direction, text] of [['up','↑'],['down','↓']]) {
+          const move = document.createElement('button');
+          move.type = 'button'; move.dataset.move = direction; move.textContent = text;
+          move.setAttribute('aria-label', `${item.label} ${direction === 'up' ? '위로' : '아래로'} 이동`);
+          controls.appendChild(move);
+        }
+        row.appendChild(controls);
         section.appendChild(row);
       });
     });
+    targetEditorFields.querySelectorAll('.target-edit-page').forEach(refreshOrderButtons);
     showTargetPage(1);
   });
   targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
@@ -1676,7 +1768,7 @@
     const label = document.getElementById('newItemLabel').value.trim();
     const qty = document.getElementById('newItemQty').value;
     const status = document.getElementById('addItemStatus');
-    if (!label || /[<>&"']/.test(label) || label === CUSTOM_ITEMS_ID || DATA.flat().some(item => item.label === label)) { status.textContent = '중복되지 않는 품목명을 입력해 주세요.'; return; }
+    if (!label || /[<>&"']/.test(label) || [CUSTOM_ITEMS_ID, ORDER_ID].includes(label) || DATA.flat().some(item => item.label === label)) { status.textContent = '중복되지 않는 품목명을 입력해 주세요.'; return; }
     if (!/^\d{1,6}$/.test(qty)) { status.textContent = '기준 수량을 입력해 주세요.'; return; }
     const invalid = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
     if (invalid) { status.textContent = '수정 중인 기준 수량을 먼저 입력해 주세요.'; return; }
