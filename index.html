@@ -821,9 +821,12 @@
   const quantityDeleteIcon = quantityClearButton.innerHTML;
   function updateQuantityClearButton() {
     const hasValue = !!activeQuantityInput?.value.trim();
+    const row = activeQuantityInput?.closest('.item');
+    const isFirst = !row || row.closest('.section').querySelector('.item') === row;
     quantityClearButton.innerHTML = hasValue ? quantityDeleteIcon : '←';
-    quantityClearButton.setAttribute('aria-label', hasValue ? '입력 지우기' : '이전 페이지');
-    quantityClearButton.disabled = !hasValue && currentPage === 1;
+    quantityClearButton.setAttribute('aria-label', hasValue ? '입력 지우기' : '이전 항목');
+    quantityClearButton.disabled = !hasValue && isFirst;
+    quantityClearButton.style.visibility = !hasValue && isFirst ? 'hidden' : '';
   }
 
   function closeQuantityKeypad() {
@@ -867,7 +870,10 @@
     if (!key || !activeQuantityInput) return;
     const input = activeQuantityInput;
     if (key === 'clear' && input.value.trim() === '') {
-      if (currentPage > 1) showPage(currentPage - 1);
+      const row = input.closest('.item');
+      const items = [...row.closest('.section').querySelectorAll('.item')];
+      const previous = items[items.indexOf(row) - 1];
+      if (previous) activateItem(previous);
       return;
     }
     if (key === 'clear') input.value = '';
