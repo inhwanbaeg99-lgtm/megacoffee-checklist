@@ -576,7 +576,7 @@
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
   .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:24px 4px 0; margin-bottom:0; }
-  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-top:0; padding-bottom:8px; margin-top:0; margin-bottom:-4px; }
+  #targetPageNav { position:static; background:transparent; margin:12px 0 16px; padding:0; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: transparent; border-radius: 0; padding: 8px 22px 16px; }
@@ -603,7 +603,7 @@
   #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
   .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
   .target-edit-page.order-editing input { pointer-events: none; opacity: 1; -webkit-text-fill-color: var(--accent); }
-  .target-edit-row input { width: 100%; justify-self:end; font-family: inherit; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: transparent; }
+  .target-edit-row input { width: 1ch; min-width:10px; max-width:90px; justify-self:end; font-family: inherit; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: transparent; }
   .target-edit-page.order-editing .target-page-add { display:none; }
   .target-edit-page.order-editing .target-edit-row input,
   .target-edit-page.order-editing .threshold-label,
@@ -626,9 +626,16 @@
   #saveTargetsBtn, #confirmAddItem { width:100%; height:56px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
   #addItemDialog .add-type-row button { height:56px; border-radius:16px; font-size:16px; }
   #addItemDialog input, #addItemDialog .new-item-quantity { background:var(--paper); }
-  #addItemDialog input { margin:12px 0; }
+  #addItemDialog input { margin:20px 0; min-height:60px; padding:16px; }
+  #addItemDialog .add-item-heading { margin-bottom:24px; }
+  #addItemDialog .add-type-row { margin:24px 0 20px; }
+  #addItemDialog .new-item-quantity { min-height:60px; margin-top:20px; }
+  #addItemDialog .new-item-quantity input { min-height:60px; padding:16px 8px; }
+  #addItemDialog #addItemStatus { margin-top:20px; }
   #addItemDialog, .order-mode { touch-action:pan-y; }
   .swipe-return-preview { position:fixed; z-index:7; pointer-events:none; background:var(--bg); overflow:hidden; }
+  .target-edit-row input::-webkit-inner-spin-button, .target-edit-row input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  .target-edit-row input { -moz-appearance:textfield; }
   .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -711,8 +718,9 @@
     <div id="adminSummary"></div>
     <div id="orderDoneBar" hidden><button type="button" id="orderDeleteBtn" hidden>삭제</button><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
-      <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
+
       <div id="targetEditorFields"></div>
+      <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
       <div class="admin-tabs" id="targetEditorActions"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button></div>
       <p id="targetEditorStatus" role="status"></p>
@@ -1580,6 +1588,16 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  const targetMeasureCanvas=document.createElement('canvas');
+  function sizeTargetInput(input) {
+    const style=getComputedStyle(input);
+    const context=targetMeasureCanvas.getContext('2d');
+    context.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    input.style.width=`${Math.max(10,Math.ceil(context.measureText(input.value || '0').width)+2)}px`;
+  }
+  targetEditorFields.addEventListener('input',event=>{if(event.target.matches('input'))sizeTargetInput(event.target);});
+  targetEditorFields.addEventListener('keyup',event=>{if(event.target.matches('input'))sizeTargetInput(event.target);});
+
   const selectedItemLabels=new Set();
   function updateOrderSelection() {
     targetEditorFields.querySelectorAll('.target-edit-row').forEach(row=>{
@@ -1925,6 +1943,7 @@
       addRow.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
       addRow.addEventListener('click',()=>openAddItem(index+1));section.appendChild(addRow);
     });
+    targetEditorFields.querySelectorAll('input').forEach(sizeTargetInput);
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(refreshOrderButtons);
     showTargetPage(1);
   });
