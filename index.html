@@ -569,7 +569,7 @@
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
   .keypad-grid button { color: #777; }
-  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"] { display: flex; align-items: center; justify-content: center; }
+  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"], .keypad-grid button[data-target-key="clear"] { display: flex; align-items: center; justify-content: center; }
   .keypad-grid button:disabled { opacity: 0.35; cursor: default; }
   .keypad-grid svg { stroke: currentColor; }
   @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
@@ -638,7 +638,7 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div class="admin-tabs" id="adminTabs">
-      <button type="button" class="admin-tab active" data-tab="reorder">발주 현황</button>
+      <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
       <button type="button" class="admin-tab" id="editTargetsBtn" style="margin-left:auto">재고 수정</button>
     </div>
@@ -646,6 +646,7 @@
     <form id="targetEditor" hidden>
       <div class="admin-page-label">기준 수량</div>
       <div id="targetEditorFields"></div>
+      <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
       <div class="admin-tabs"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
       <p id="targetEditorStatus" role="status"></p>
     </form>
@@ -1438,6 +1439,42 @@
   const targetEditor = document.getElementById('targetEditor');
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
+  const targetKeypad = document.getElementById('targetKeypad');
+  let activeTargetInput = null;
+  let replaceTargetValue = true;
+  for (const key of ['1','2','3','4','5','6','7','8','9','clear','0','next']) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.targetKey = key;
+    button.innerHTML = key === 'clear' ? quantityDeleteIcon : key === 'next' ? '→' : key;
+    button.setAttribute('aria-label', key === 'clear' ? '입력 지우기' : key === 'next' ? '다음 기준 입력' : key);
+    targetKeypad.querySelector('.keypad-grid').appendChild(button);
+  }
+  function openTargetKeypad(input) {
+    activeTargetInput = input;
+    replaceTargetValue = true;
+    input.closest('.target-edit-row').after(targetKeypad);
+    targetKeypad.hidden = false;
+    input.focus({preventScroll:true});
+    input.scrollIntoView({block:'nearest'});
+  }
+  targetKeypad.addEventListener('pointerdown', event => event.preventDefault());
+  targetKeypad.addEventListener('click', event => {
+    const key = event.target.closest('[data-target-key]')?.dataset.targetKey;
+    if (!key || !activeTargetInput) return;
+    if (key === 'next') {
+      if (!/^\d{1,6}$/.test(activeTargetInput.value)) { targetEditorStatus.textContent = '수량을 입력해 주세요.'; return; }
+      const inputs = [...targetEditorFields.querySelectorAll('input')];
+      const next = inputs[inputs.indexOf(activeTargetInput)+1];
+      if (next) openTargetKeypad(next);
+      else { targetKeypad.hidden = true; activeTargetInput = null; }
+      return;
+    }
+    if (key === 'clear') activeTargetInput.value = '';
+    else activeTargetInput.value = ((replaceTargetValue ? '' : activeTargetInput.value)+key).replace(/^0+(?=\d)/,'').slice(0,6);
+    replaceTargetValue = false;
+    activeTargetInput.dispatchEvent(new Event('input',{bubbles:true}));
+  });
   function refreshTargetLabels() {
     DATA.flat().forEach(item => {
       const target = itemRefs[item.label]?.row.querySelector('.qty-target');
@@ -1461,6 +1498,8 @@
   }
   function closeTargetEditor() {
     targetEditor.hidden = true;
+    targetKeypad.hidden = true;
+    activeTargetInput = null;
     adminSummaryEl.hidden = false;
     document.getElementById('adminDateSelect').hidden = false;
     document.getElementById('adminTabs').hidden = false;
@@ -1475,6 +1514,8 @@
     document.getElementById('editTargetsBtn').classList.add('active');
     targetEditor.hidden = false;
     targetEditorStatus.textContent = '';
+    targetEditor.appendChild(targetKeypad);
+    targetKeypad.hidden = true;
     targetEditorFields.replaceChildren();
     DATA.forEach((items, index) => {
       const heading = document.createElement('div');
@@ -1492,7 +1533,7 @@
           row.append(label, note);
         } else {
           const input = document.createElement('input');
-          input.type = 'number'; input.inputMode = 'numeric'; input.min = '0'; input.max = '999999'; input.step = '1'; input.required = true;
+          input.type = 'number'; input.inputMode = 'none'; input.readOnly = true; input.min = '0'; input.max = '999999'; input.step = '1'; input.required = true;
           input.value = parseTargetNumber(item.qty);
           input.dataset.targetLabel = item.label;
           input.id = `target-${index}-${items.indexOf(item)}`;
@@ -1517,10 +1558,18 @@
     });
     window.scrollTo({top:0});
   });
+  targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
+  targetEditorFields.addEventListener('click', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
+  targetEditorFields.addEventListener('keydown', event => {
+    if (!event.target.matches('input')) return;
+    if (/^[0-9]$/.test(event.key)) { event.preventDefault(); targetKeypad.querySelector(`[data-target-key="${event.key}"]`).click(); }
+    else if (event.key === 'Backspace') { event.preventDefault(); event.target.value = event.target.value.slice(0,-1); replaceTargetValue = false; }
+  });
   document.getElementById('cancelTargetsBtn').addEventListener('click', closeTargetEditor);
   targetEditor.addEventListener('submit', async event => {
     event.preventDefault();
-    if (!targetEditor.reportValidity()) return;
+    const invalidInput = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
+    if (invalidInput) { targetEditorStatus.textContent = '수량을 입력해 주세요.'; openTargetKeypad(invalidInput); return; }
     const button = document.getElementById('saveTargetsBtn');
     const updates = {};
     targetEditorFields.querySelectorAll('[data-target-label]').forEach(input => {
