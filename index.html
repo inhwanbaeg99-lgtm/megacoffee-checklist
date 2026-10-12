@@ -565,15 +565,17 @@
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
-  .drag-handle { touch-action: none; cursor: grab; }
-  .target-edit-row.dragging { opacity: .6; background: var(--accent-soft); }
-  .add-keyboard-row { display: flex; gap: 3px; margin: 4px 0; }
-  .add-keyboard-row button { flex: 1; min-width: 0; height: 38px; border: 0; border-radius: 6px; background: var(--bg); color: var(--ink); font-size: 16px; font-family: inherit; touch-action: manipulation; }
-  .add-type-row { display:flex; gap:8px; }
-  .add-type-row button { flex:1; }
+  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; }
+  .target-edit-row.dragging { opacity: .2; }
+  .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: var(--paper); border-radius: 10px; box-shadow: 0 8px 24px #0002; opacity: .96; will-change: transform; }
+  .add-type-row { display: flex; gap: 8px; }
+  .add-type-row button { flex: 1; }
+  .new-item-quantity { display:flex; align-items:center; background:var(--bg); border-radius:10px; margin-top:12px; padding:0 8px; }
+  #addItemDialog .new-item-quantity input { min-width:0; flex:1; width:auto; margin:0; background:transparent; }
+  .unit-toggle { display:flex; gap:4px; flex-shrink:0; }
+  .unit-toggle button { border:0; border-radius:8px; padding:8px 10px; font-family:inherit; font-size:14px; font-weight:700; color:var(--ink-sub); background:transparent; }
+  .unit-toggle button.active { color:var(--accent); background:var(--accent-soft); }
   .order-controls { display: none; gap: 4px; grid-column: 1 / -1; justify-content: flex-end; }
-  .target-edit-page.order-editing .target-edit-row { grid-template-columns: minmax(0,1fr) 80px 72px; }
-  .target-edit-page.order-editing .order-controls { display: flex; grid-column: 3; grid-row: 1; }
   .order-controls button { width: 36px; height: 32px; border: 0; border-radius: 8px; background: var(--bg); color: var(--ink); cursor: pointer; font-size: 18px; }
   .order-controls button:disabled { opacity: .25; cursor: default; }
   .target-edit-page[hidden] { display: none; }
@@ -672,15 +674,13 @@
   </div>
 
 <dialog id="addItemDialog"><form id="addItemForm"><div style="font-weight:700">품목 추가</div>
-<label>품목명<input id="newItemLabel" readonly inputmode="none" maxlength="60" autocomplete="off" /></label>
+<label>품목명<input id="newItemLabel" type="text" maxlength="60" autocomplete="off" /></label>
 <div class="add-type-row"><button type="button" class="admin-tab active" id="newItemCountType">기준 수량</button><button type="button" class="admin-tab" id="newItemSegmentType">1/3</button></div>
-<div id="newItemCountFields"><label>기준 수량<input id="newItemQty" readonly inputmode="none" /></label><label>단위<select id="newItemUnit"><option>개</option><option>박스</option></select></label><label>이 이하일 시 발주 · 선택사항<input id="newItemThreshold" readonly inputmode="none" placeholder="선택사항" /></label></div>
-<div id="addItemKeyboard" aria-label="품목 추가 자체 키보드"></div>
+<div id="newItemCountFields"><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량" placeholder="수량" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><label>이 이하일 시 발주 · 선택사항<input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="선택사항" /></label></div>
 <p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button><button type="button" class="admin-tab" id="cancelAddItem">취소</button></div></form></dialog>
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
 </div>
-<script src="hangul.min.js"></script>
 <script>
   const DATA = [
     [
@@ -1637,42 +1637,65 @@
     orderChanged = true;
   }
   let dragState = null;
-  targetEditorFields.addEventListener('pointerdown', event => {
-    const handle = event.target.closest('.drag-handle');
-    if (!handle) return;
-    const row = handle.closest('.target-edit-row');
-    const section = row.closest('.target-edit-page');
-    if (!section.classList.contains('order-editing')) return;
-    event.preventDefault();
-    targetKeypad.hidden = true; activeTargetInput = null;
-    handle.setPointerCapture(event.pointerId);
-    row.classList.add('dragging');
-    dragState = {row,section,handle,pointerId:event.pointerId,changed:false};
-  });
-  targetEditorFields.addEventListener('pointermove', event => {
-    if (!dragState || event.pointerId !== dragState.pointerId) return;
-    event.preventDefault();
-    const {row,section} = dragState;
-    const other = [...section.querySelectorAll('.target-edit-row')].find(item => {
-      if (item === row) return false;
-      const rect = item.getBoundingClientRect(); return event.clientY >= rect.top && event.clientY <= rect.bottom;
+  let dragFrame = null;
+  function animateOrderMove(section, move) {
+    const rows = [...section.querySelectorAll('.target-edit-row')];
+    const before = new Map(rows.map(row => [row,row.getBoundingClientRect().top]));
+    move();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (const row of rows) {
+      if (row === dragState?.row) continue;
+      const delta = before.get(row)-row.getBoundingClientRect().top;
+      if (delta) row.animate([{transform:`translateY(${delta}px)`},{transform:'translateY(0)'}],{duration:160,easing:'ease-out'});
+    }
+  }
+  function updateDragFrame() {
+    if (!dragState) return;
+    const {row,section,preview,startY,y} = dragState;
+    preview.style.transform = `translate3d(0,${y-startY}px,0)`;
+    const rows = [...section.querySelectorAll('.target-edit-row')];
+    const index = rows.indexOf(row);
+    const other = rows.find(item => {
+      if (item===row) return false;
+      const rect=item.getBoundingClientRect(); return y>=rect.top && y<=rect.bottom;
     });
     if (other) {
-      const rect = other.getBoundingClientRect();
-      if (event.clientY < rect.top+rect.height/2) other.before(row); else other.after(row);
-      dragState.changed = true;
+      const rect=other.getBoundingClientRect();
+      const otherIndex=rows.indexOf(other);
+      if (otherIndex<index && y<rect.top+rect.height/2) {animateOrderMove(section,()=>other.before(row));dragState.changed=true;}
+      else if (otherIndex>index && y>rect.top+rect.height/2) {animateOrderMove(section,()=>other.after(row));dragState.changed=true;}
     }
-    if (event.clientY < 80) window.scrollBy(0,-12);
-    else if (event.clientY > innerHeight-80) window.scrollBy(0,12);
-  });
-  function endOrderDrag(event) {
-    if (!dragState || event.pointerId !== dragState.pointerId) return;
-    dragState.row.classList.remove('dragging');
-    if (dragState.changed) persistSectionOrder(dragState.section);
-    dragState = null;
+    if (y<70) window.scrollBy(0,-8); else if(y>innerHeight-70)window.scrollBy(0,8);
+    dragFrame=requestAnimationFrame(updateDragFrame);
   }
-  targetEditorFields.addEventListener('pointerup', endOrderDrag);
-  targetEditorFields.addEventListener('pointercancel', endOrderDrag);
+  targetEditorFields.addEventListener('pointerdown', event => {
+    const row=event.target.closest('.target-edit-row');
+    const section=row?.closest('.target-edit-page');
+    if(!section?.classList.contains('order-editing') || event.button>0) return;
+    event.preventDefault();
+    targetKeypad.hidden=true;activeTargetInput=null;
+    const rect=row.getBoundingClientRect();
+    const preview=row.cloneNode(true);preview.classList.add('drag-preview');
+    preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;box-sizing:border-box;`;
+    preview.setAttribute('aria-hidden','true');preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+    document.body.appendChild(preview);
+    row.classList.add('dragging');
+    dragState={row,section,preview,pointerId:event.pointerId,startY:event.clientY,y:event.clientY,changed:false};
+    dragFrame=requestAnimationFrame(updateDragFrame);
+  });
+  document.addEventListener('pointermove', event=>{
+    if(!dragState || event.pointerId!==dragState.pointerId)return;
+    event.preventDefault();dragState.y=event.clientY;
+  },{passive:false});
+  function endOrderDrag(event) {
+    if(!dragState || event.pointerId!==dragState.pointerId)return;
+    cancelAnimationFrame(dragFrame);
+    dragState.row.classList.remove('dragging');dragState.preview.remove();
+    if(dragState.changed)persistSectionOrder(dragState.section);
+    dragState=null;
+  }
+  document.addEventListener('pointerup',endOrderDrag);
+  document.addEventListener('pointercancel',endOrderDrag);
   function applyOrderToChecklist() {
     if (!orderChanged) return;
     renderChecklistItems(); sectionEls = document.querySelectorAll('.section'); showPage(currentPage); closeQuantityKeypad();
@@ -1752,30 +1775,14 @@
             row.append(note, threshold);
           }
         }
-        const controls = document.createElement('div');
-        controls.className = 'order-controls';
-        const handle = document.createElement('button');
-        handle.type = 'button'; handle.className = 'drag-handle'; handle.textContent = '☰';
-        handle.setAttribute('aria-label', `${item.label} 순서 이동`);
-        handle.addEventListener('keydown', event => {
-          if (!['ArrowUp','ArrowDown'].includes(event.key)) return;
-          event.preventDefault();
-          const rows = [...section.querySelectorAll('.target-edit-row')];
-          const other = rows[rows.indexOf(row)+(event.key === 'ArrowUp' ? -1 : 1)];
-          if (!other) return;
-          if (event.key === 'ArrowUp') other.before(row); else other.after(row);
-          persistSectionOrder(section); handle.focus();
-        });
-        controls.appendChild(handle);
-        row.appendChild(controls);
         section.appendChild(row);
       });
     });
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(refreshOrderButtons);
     showTargetPage(1);
   });
-  targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
-  targetEditorFields.addEventListener('click', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
+  targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input') && !event.target.closest('.order-editing')) openTargetKeypad(event.target); });
+  targetEditorFields.addEventListener('click', event => { if (event.target.matches('input') && !event.target.closest('.order-editing')) openTargetKeypad(event.target); });
   targetEditorFields.addEventListener('keydown', event => {
     if (!event.target.matches('input')) return;
     if (/^[0-9]$/.test(event.key)) { event.preventDefault(); targetKeypad.querySelector(`[data-target-key="${event.key}"]`).click(); }
@@ -1801,68 +1808,33 @@
   }
   const addItemDialog = document.getElementById('addItemDialog');
   let newItemType = 'count';
-  let addKeyboardMode = 'ko';
-  let addKeyboardShift = false;
-  let activeAddInput = null;
-  let replaceAddValue = false;
-  const addItemKeyboard = document.getElementById('addItemKeyboard');
+  let newItemUnit = '개';
   function setNewItemType(type) {
-    newItemType = type;
+    newItemType=type;
     document.getElementById('newItemCountType').classList.toggle('active',type==='count');
     document.getElementById('newItemSegmentType').classList.toggle('active',type==='segments');
-    document.getElementById('newItemCountFields').hidden = type==='segments';
-    if (type==='segments') { activeAddInput = document.getElementById('newItemLabel'); renderAddKeyboard(); }
+    document.getElementById('newItemCountFields').hidden=type==='segments';
   }
   document.getElementById('newItemCountType').addEventListener('click',()=>setNewItemType('count'));
   document.getElementById('newItemSegmentType').addEventListener('click',()=>setNewItemType('segments'));
-  function renderAddKeyboard() {
-    addItemKeyboard.replaceChildren();
-    const isName = activeAddInput?.id === 'newItemLabel';
-    const rows = !isName ? ['123','456','789'] : addKeyboardMode === 'ko' ? [addKeyboardShift?'ㅃㅉㄸㄲㅆㅛㅕㅑㅒㅖ':'ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ','ㅁㄴㅇㄹㅎㅗㅓㅏㅣ','ㅋㅌㅊㅍㅠㅜㅡ'] : addKeyboardMode === 'en' ? ['qwertyuiop','asdfghjkl','zxcvbnm'] : ['1234567890','()-_/'];
-    for (const keys of rows) {
-      const row = document.createElement('div'); row.className='add-keyboard-row';
-      for (const key of keys) { const button=document.createElement('button'); button.type='button'; button.dataset.addKey=key; button.textContent=key; row.appendChild(button); }
-      addItemKeyboard.appendChild(row);
-    }
-    const row=document.createElement('div');row.className='add-keyboard-row';
-    for (const [key,text] of (isName ? [['mode','한/영/123'],['shift','⇧'],['space','공백'],['back','⌫'],['clear','지우기']] : [['clear','지우기'],['0','0'],['back','⌫']])) {
-      const button=document.createElement('button');button.type='button';button.dataset.addKey=key;button.textContent=text;row.appendChild(button);
-    }
-    addItemKeyboard.appendChild(row);
-  }
-  function focusAddInput(input) { activeAddInput=input;replaceAddValue=false;renderAddKeyboard(); }
-  ['newItemLabel','newItemQty','newItemThreshold'].forEach(id=> {
-    const input=document.getElementById(id);
-    input.addEventListener('focus',()=>focusAddInput(input));
-    input.addEventListener('click',()=>focusAddInput(input));
-    input.addEventListener('keydown', event=>{
-      if(event.key==='Backspace') {event.preventDefault();enterAddKey('back');}
-      else if(event.key.length===1) {event.preventDefault();enterAddKey(event.key);}
+  function selectNewUnit(unit) {
+    newItemUnit=unit;
+    document.querySelectorAll('[data-new-unit]').forEach(button=>{
+      button.classList.toggle('active',button.dataset.newUnit===unit);
+      button.setAttribute('aria-pressed',String(button.dataset.newUnit===unit));
     });
-  });
-  function enterAddKey(key) {
-    if(!activeAddInput) return;
-    const isName=activeAddInput.id==='newItemLabel';
-    if(key==='shift'){addKeyboardShift=!addKeyboardShift;renderAddKeyboard();return;}
-    if(key==='mode'){addKeyboardMode=addKeyboardMode==='ko'?'en':addKeyboardMode==='en'?'num':'ko';renderAddKeyboard();return;}
-    if(key==='clear') activeAddInput.value='';
-    else if(key==='back') {const chars=Hangul.disassemble(activeAddInput.value);chars.pop();activeAddInput.value=Hangul.assemble(chars);}
-    else if(isName) activeAddInput.value=Hangul.assemble([...Hangul.disassemble(activeAddInput.value),key==='space'?' ':key]).slice(0,60);
-    else if(/^\d$/.test(key)) activeAddInput.value=(activeAddInput.value+key).replace(/^0+(?=\d)/,'').slice(0,6);
   }
-  addItemKeyboard.addEventListener('pointerdown',event=>event.preventDefault());
-  addItemKeyboard.addEventListener('click',event=>{const key=event.target.closest('[data-add-key]')?.dataset.addKey;if(key)enterAddKey(key);});
+  document.querySelectorAll('[data-new-unit]').forEach(button=>button.addEventListener('click',()=>selectNewUnit(button.dataset.newUnit)));
   let addingPage = 1;
   function openAddItem(page) {
     addingPage = page;
     document.getElementById('addItemForm').reset();
     document.getElementById('addItemStatus').textContent = '';
     setNewItemType('count');
-    addKeyboardMode = 'ko';
+    selectNewUnit('개');
     addItemDialog.showModal();
     const nameInput = document.getElementById('newItemLabel');
     nameInput.focus({preventScroll:true});
-    focusAddInput(nameInput);
   }
   document.getElementById('cancelAddItem').addEventListener('click', () => addItemDialog.close());
   document.getElementById('addItemForm').addEventListener('submit', async event => {
@@ -1877,7 +1849,7 @@
     saveTargetDraft();
     const threshold = document.getElementById('newItemThreshold').value;
     if (newItemType==='count' && threshold!=='' && !/^\d{1,6}$/.test(threshold)) {status.textContent='발주 기준을 확인해 주세요.';return;}
-    const record = newItemType === 'segments' ? {page:addingPage,label,segments:3} : {page:addingPage, label, qty:`${Number(qty)}${document.getElementById('newItemUnit').value}`, ...(threshold!==''?{orderThreshold:Number(threshold)}:{})};
+    const record = newItemType === 'segments' ? {page:addingPage,label,segments:3} : {page:addingPage, label, qty:`${Number(qty)}${newItemUnit}`, ...(threshold!==''?{orderThreshold:Number(threshold)}:{})};
     customItems.push(record);
     localStorage.setItem(CUSTOM_ITEMS_KEY, JSON.stringify(customItems));
     queueValue(TARGETS_DATE, CUSTOM_ITEMS_ID, CUSTOM_ITEMS_ID, JSON.stringify(customItems));
