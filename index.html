@@ -1073,11 +1073,6 @@
     if (firstInput) openQuantityKeypad(firstInput);
   }
 
-  function loadSavedPage() {
-    const p = parseInt(localStorage.getItem(PAGE_KEY), 10);
-    return p >= 1 && p <= totalPages ? p : 1;
-  }
-
   prevBtn.addEventListener('click', () => showPage(currentPage - 1));
   nextBtn.addEventListener('click', () => showPage(currentPage + 1));
   saveBtn.addEventListener('click', () => {
@@ -1108,14 +1103,10 @@
       showPage(currentPage + 1);
       return;
     }
-    const original = saveBtn.textContent;
-    saveBtn.textContent = '저장됨 ✓';
-    setTimeout(() => {
-      saveBtn.textContent = original;
-    }, 1200);
+    showPage(1);
   });
 
-  showPage(loadSavedPage());
+  showPage(1);
   syncTodayFromServer();
 
   function resetForNewDay(newDate) {
