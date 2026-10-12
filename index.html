@@ -558,13 +558,19 @@
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
+  .target-page-tools { display: flex; justify-content: flex-end; padding: 6px 0; }
+  .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  #addItemDialog { width: min(90vw, 360px); border: 0; border-radius: 16px; padding: 24px; background: var(--paper); color: var(--ink); font-family: inherit; }
+  #addItemDialog::backdrop { background: #0005; }
+  #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
+  #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font: inherit; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
   .target-edit-page[hidden] { display: none; }
   .target-edit-row > label { font-size: 16px; font-weight: 700; line-height: 1.4; }
   .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
   #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
   .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
-  .target-edit-row input { width: 80px; font-family: inherit; font-size: 16px; font-weight: 700; text-align: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; color: var(--accent); background: var(--bg); }
+  .target-edit-row input { width: 80px; font-family: inherit; font-size: 16px; font-weight: 700; text-align: center; padding: 8px; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: var(--bg); }
   .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -654,6 +660,7 @@
     </form>
   </div>
 
+<dialog id="addItemDialog"><form id="addItemForm"><div class="trader-name" style="font-weight:700">품목 추가</div><label>품목명<input id="newItemLabel" required maxlength="60" autocomplete="off" /></label><label>기준 수량<input id="newItemQty" type="number" inputmode="numeric" min="0" max="999999" step="1" required /></label><label>단위<select id="newItemUnit"><option>개</option><option>박스</option><option>통</option><option>봉</option></select></label><p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button><button type="button" class="admin-tab" id="cancelAddItem">취소</button></div></form></dialog>
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
 </div>
@@ -755,6 +762,23 @@
     ],
   ];
 
+  const CUSTOM_ITEMS_KEY = 'megacoffee-custom-items-v1';
+  const CUSTOM_ITEMS_ID = '__custom_items__';
+  let customItems = [];
+  try { const saved = JSON.parse(localStorage.getItem(CUSTOM_ITEMS_KEY)); if (Array.isArray(saved)) customItems = saved; } catch {}
+  function addCustomItemsToData(items) {
+    let added = false;
+    for (const item of items) {
+      if (!item || !Number.isInteger(item.page) || item.page < 1 || item.page > 5 ||
+          typeof item.label !== 'string' || !item.label.trim() || item.label.length > 60 || /[<>&"']/.test(item.label) ||
+          item.label === CUSTOM_ITEMS_ID || !/^\d{1,6}(개|박스|통|봉)$/.test(item.qty)) continue;
+      if (DATA.flat().some(existing => existing.label === item.label)) continue;
+      DATA[item.page-1].push({ label:item.label, qty:item.qty });
+      added = true;
+    }
+    return added;
+  }
+  addCustomItemsToData(customItems);
   const TARGETS_KEY = 'megacoffee-targets-v1';
   const TARGETS_DATE = 'settings';
   let targetSettings = {};
@@ -1004,6 +1028,9 @@
     advanceFromItem(row);
   });
 
+  function renderChecklistItems() {
+    sectionsEl.replaceChildren();
+    Object.keys(itemRefs).forEach(id => delete itemRefs[id]);
   DATA.forEach((items, pageIdx) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
@@ -1133,6 +1160,8 @@
 
     sectionsEl.appendChild(sectionEl);
   });
+  }
+  renderChecklistItems();
 
   function applyRemoteValue(id, val) {
     const ref = itemRefs[id];
@@ -1194,7 +1223,7 @@
   const nextBtn = document.getElementById('nextBtn');
   const pageDotsEl = document.getElementById('pageDots');
   const saveBtn = document.getElementById('saveBtn');
-  const sectionEls = document.querySelectorAll('.section');
+  let sectionEls = document.querySelectorAll('.section');
 
   for (let i = 1; i <= totalPages; i++) {
     const dot = document.createElement('button');
@@ -1442,6 +1471,8 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  document.getElementById('targetPrevPage').innerHTML = document.getElementById('prevBtn').innerHTML;
+  document.getElementById('targetNextPage').innerHTML = document.getElementById('nextBtn').innerHTML;
   let targetPage = 1;
   const targetPageDots = document.getElementById('targetPageDots');
   DATA.forEach((_, index) => {
@@ -1508,7 +1539,25 @@
   async function syncTargetSettings() {
     const remote = await fetchDateValues(TARGETS_DATE);
     if (!remote) return;
+    const customRecord = pendingValues[`${TARGETS_DATE}:${CUSTOM_ITEMS_ID}`]?.value ?? remote[CUSTOM_ITEMS_ID];
+    if (customRecord) {
+      try {
+        const items = typeof customRecord === 'string' ? JSON.parse(customRecord) : customRecord;
+        if (Array.isArray(items)) {
+          customItems = items;
+          localStorage.setItem(CUSTOM_ITEMS_KEY, JSON.stringify(customItems));
+          if (addCustomItemsToData(customItems)) {
+            renderChecklistItems();
+            sectionEls = document.querySelectorAll('.section');
+            showPage(currentPage);
+            syncTodayFromServer();
+            if (!targetEditor.hidden) { quantityKeypad.hidden = true; }
+          }
+        }
+      } catch {}
+    }
     Object.entries(remote).forEach(([label, value]) => {
+      if (label === CUSTOM_ITEMS_ID) return;
       if (pendingValues[`${TARGETS_DATE}:${label}`]) return;
       try { targetSettings[label] = typeof value === 'string' ? JSON.parse(value) : value; } catch {}
     });
@@ -1546,6 +1595,12 @@
       section.className = 'target-edit-page';
       section.dataset.page = index+1;
       targetEditorFields.appendChild(section);
+      const tools = document.createElement('div');
+      tools.className = 'target-page-tools';
+      const add = document.createElement('button');
+      add.type = 'button'; add.className = 'target-add-btn'; add.textContent = '추가';
+      add.addEventListener('click', () => openAddItem(index+1));
+      tools.appendChild(add); section.appendChild(tools);
       items.forEach(item => {
         const row = document.createElement('div');
         row.className = 'target-edit-row';
@@ -1590,11 +1645,7 @@
     else if (event.key === 'Backspace') { event.preventDefault(); event.target.value = event.target.value.slice(0,-1); replaceTargetValue = false; }
   });
   document.getElementById('cancelTargetsBtn').addEventListener('click', closeTargetEditor);
-  targetEditor.addEventListener('submit', async event => {
-    event.preventDefault();
-    const invalidInput = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
-    if (invalidInput) { targetEditorStatus.textContent = '수량을 입력해 주세요.'; openTargetKeypad(invalidInput); return; }
-    const button = document.getElementById('saveTargetsBtn');
+  function saveTargetDraft() {
     const updates = {};
     targetEditorFields.querySelectorAll('[data-target-label]').forEach(input => {
       const label = input.dataset.targetLabel;
@@ -1610,6 +1661,44 @@
     Object.entries(updates).forEach(([label, config]) => {
       queueValue(TARGETS_DATE, label, label, JSON.stringify(config));
     });
+  }
+  const addItemDialog = document.getElementById('addItemDialog');
+  let addingPage = 1;
+  function openAddItem(page) {
+    addingPage = page;
+    document.getElementById('addItemForm').reset();
+    document.getElementById('addItemStatus').textContent = '';
+    addItemDialog.showModal();
+  }
+  document.getElementById('cancelAddItem').addEventListener('click', () => addItemDialog.close());
+  document.getElementById('addItemForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const label = document.getElementById('newItemLabel').value.trim();
+    const qty = document.getElementById('newItemQty').value;
+    const status = document.getElementById('addItemStatus');
+    if (!label || /[<>&"']/.test(label) || label === CUSTOM_ITEMS_ID || DATA.flat().some(item => item.label === label)) { status.textContent = '중복되지 않는 품목명을 입력해 주세요.'; return; }
+    if (!/^\d{1,6}$/.test(qty)) { status.textContent = '기준 수량을 입력해 주세요.'; return; }
+    const invalid = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
+    if (invalid) { status.textContent = '수정 중인 기준 수량을 먼저 입력해 주세요.'; return; }
+    saveTargetDraft();
+    const record = {page:addingPage, label, qty:`${Number(qty)}${document.getElementById('newItemUnit').value}`};
+    customItems.push(record);
+    localStorage.setItem(CUSTOM_ITEMS_KEY, JSON.stringify(customItems));
+    queueValue(TARGETS_DATE, CUSTOM_ITEMS_ID, CUSTOM_ITEMS_ID, JSON.stringify(customItems));
+    addCustomItemsToData([record]);
+    renderChecklistItems(); sectionEls = document.querySelectorAll('.section');
+    showPage(currentPage); closeQuantityKeypad();
+    addItemDialog.close();
+    document.getElementById('editTargetsBtn').click();
+    showTargetPage(addingPage);
+    flushPending().catch(() => { targetEditorStatus.textContent = '품목이 기기에 추가됐으며 서버 저장은 자동으로 재시도합니다.'; });
+  });
+  targetEditor.addEventListener('submit', async event => {
+    event.preventDefault();
+    const invalidInput = [...targetEditorFields.querySelectorAll('input')].find(input => !/^\d{1,6}$/.test(input.value));
+    if (invalidInput) { targetEditorStatus.textContent = '수량을 입력해 주세요.'; openTargetKeypad(invalidInput); return; }
+    const button = document.getElementById('saveTargetsBtn');
+    saveTargetDraft();
     button.disabled = true;
     targetEditorStatus.textContent = '저장 중…';
     try {
