@@ -557,7 +557,9 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  #targetEditorFields { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; margin-bottom: 16px; }
+  #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
+  .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
+  .target-edit-page[hidden] { display: none; }
   .target-edit-row > label { font-size: 16px; font-weight: 700; line-height: 1.4; }
   .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
   #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
@@ -644,7 +646,7 @@
     </div>
     <div id="adminSummary"></div>
     <form id="targetEditor" hidden>
-      <div class="admin-page-label">기준 수량</div>
+      <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
       <div id="targetEditorFields"></div>
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
       <div class="admin-tabs"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
@@ -1440,6 +1442,26 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  let targetPage = 1;
+  const targetPageDots = document.getElementById('targetPageDots');
+  DATA.forEach((_, index) => {
+    const dot = document.createElement('span');
+    dot.className = 'page-dot';
+    dot.setAttribute('aria-label', `${index+1} 페이지`);
+    targetPageDots.appendChild(dot);
+  });
+  function showTargetPage(page) {
+    targetPage = Math.max(1, Math.min(DATA.length, page));
+    targetKeypad.hidden = true;
+    activeTargetInput = null;
+    targetEditorFields.querySelectorAll('.target-edit-page').forEach(section => { section.hidden = Number(section.dataset.page) !== targetPage; });
+    [...targetPageDots.children].forEach((dot, index) => dot.classList.toggle('active', index+1 === targetPage));
+    document.getElementById('targetPrevPage').style.visibility = targetPage === 1 ? 'hidden' : '';
+    document.getElementById('targetNextPage').style.visibility = targetPage === DATA.length ? 'hidden' : '';
+    window.scrollTo({top:0});
+  }
+  document.getElementById('targetPrevPage').addEventListener('click', () => showTargetPage(targetPage-1));
+  document.getElementById('targetNextPage').addEventListener('click', () => showTargetPage(targetPage+1));
   let activeTargetInput = null;
   let replaceTargetValue = true;
   for (const key of ['1','2','3','4','5','6','7','8','9','clear','0','next']) {
@@ -1451,6 +1473,8 @@
     targetKeypad.querySelector('.keypad-grid').appendChild(button);
   }
   function openTargetKeypad(input) {
+    const page = Number(input.closest('.target-edit-page').dataset.page);
+    if (page !== targetPage) showTargetPage(page);
     activeTargetInput = input;
     replaceTargetValue = true;
     input.closest('.target-edit-row').after(targetKeypad);
@@ -1518,10 +1542,10 @@
     targetKeypad.hidden = true;
     targetEditorFields.replaceChildren();
     DATA.forEach((items, index) => {
-      const heading = document.createElement('div');
-      heading.className = 'admin-page-label';
-      heading.textContent = `${index+1} 페이지`;
-      targetEditorFields.appendChild(heading);
+      const section = document.createElement('div');
+      section.className = 'target-edit-page';
+      section.dataset.page = index+1;
+      targetEditorFields.appendChild(section);
       items.forEach(item => {
         const row = document.createElement('div');
         row.className = 'target-edit-row';
@@ -1553,10 +1577,10 @@
             row.append(note, threshold);
           }
         }
-        targetEditorFields.appendChild(row);
+        section.appendChild(row);
       });
     });
-    window.scrollTo({top:0});
+    showTargetPage(1);
   });
   targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
   targetEditorFields.addEventListener('click', event => { if (event.target.matches('input')) openTargetKeypad(event.target); });
