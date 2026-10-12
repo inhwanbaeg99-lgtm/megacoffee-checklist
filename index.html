@@ -463,15 +463,17 @@
     margin-bottom: 16px;
     box-sizing: border-box;
   }
-  .admin-view-header { height:auto; min-height:44px; align-items:flex-start; }
-  .admin-sticky-header #adminTabs { display:flex; flex-direction:column; position:relative; width:180px; margin:0 !important; gap:0; padding:2px 0; background:var(--paper); border-radius:20px; }
-  #adminTabs .admin-tab { flex:none; order:0; width:100%; height:44px; padding:0 44px 0 16px; text-align:left; font-size:16px; background:transparent; color:var(--ink); }
+  .admin-view-header { height:auto; min-height:48px; align-items:flex-start; }
+  .admin-sticky-header #adminTabs { display:flex; flex-direction:column; position:relative; width:180px; margin:0 !important; gap:0; padding:2px 0; background:var(--paper); border-radius:24px; overflow:hidden; }
+  #adminTabs .admin-tab { flex:none; max-height:44px; opacity:1; overflow:hidden; transition:max-height .24s ease, opacity .2s ease; order:0; width:100%; height:44px; padding:0 44px 0 16px; text-align:left; font-size:16px; background:transparent; color:var(--ink); }
   #adminTabs .admin-tab.active { order:-1; background:transparent; color:var(--ink); }
-  #adminTabs:not(.expanded) .admin-tab:not(.active) { display:none; }
-  #adminMenuToggle { position:absolute; top:6px; right:7px; width:36px; height:36px; border:0; background:transparent; color:var(--ink); font-size:25px; line-height:1; cursor:pointer; z-index:1; }
-  .admin-view-header #adminBackBtn { margin-left:10px; background:var(--paper); color:var(--ink); }
+  #adminTabs:not(.expanded) .admin-tab:not(.active) { max-height:0; opacity:0; pointer-events:none; }
+  #adminMenuToggle { position:absolute; top:6px; right:7px; width:36px; height:36px; border:0; background:transparent; color:var(--ink); font-size:25px; line-height:1; cursor:pointer; z-index:1; transition:transform .24s ease; }
+  #adminTabs.expanded #adminMenuToggle { transform:rotate(45deg); }
+  .admin-view-header #adminBackBtn { margin-left:auto; width:48px; height:48px; background:var(--paper); color:var(--ink); }
   .admin-sticky-header #adminTabs[hidden] { display:none; }
   #adminTabs[hidden] { display:none; }
+  @media (prefers-reduced-motion:reduce) { #adminMenuToggle, #adminTabs .admin-tab { transition:none; } }
   .admin-tabs {
     display: flex;
     gap: 6px;
@@ -568,7 +570,7 @@
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
-  .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; }
+  .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; margin-right:-12px; }
   .target-order-edit { font-size:14px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0; background:transparent; color:var(--ink-sub); cursor:pointer; }
   .target-select { display:none; width:24px; height:24px; border:2px solid var(--line); border-radius:50%; background:transparent; color:var(--line); padding:0; flex-shrink:0; touch-action:manipulation; }
@@ -589,7 +591,7 @@
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: transparent; color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
-  .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:24px 4px 0; margin-bottom:0; }
+  .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:12px 4px 0; margin-bottom:0; }
   .admin-sticky-header::after { content:""; position:absolute; top:100%; left:0; right:0; height:24px; background:linear-gradient(to bottom,var(--bg),transparent); pointer-events:none; }
   #targetPageNav { position:static; background:transparent; margin:12px 0 16px; padding:0; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
@@ -631,7 +633,7 @@
   #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
   #orderDeleteBtn[hidden] { display:none; }
   #orderDeleteBtn { color:#e0483e !important; }
-  #orderDoneBtn, #orderDeleteBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #orderDoneBtn, #orderDeleteBtn { width:100%; height:48px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
   .target-edit-row input { color:#000; border-bottom:0; border-radius:0; }
@@ -640,8 +642,8 @@
   .admin-view:has(#targetEditor:not([hidden])) #adminTabs { margin-bottom:4px; }
   body.inventory-target-view { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
   #targetEditorActions { position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:29; margin:0; }
-  #saveTargetsBtn, #confirmAddItem { width:100%; height:56px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
-  #addItemDialog .add-type-row button { height:56px; border-radius:16px; font-size:16px; }
+  #saveTargetsBtn, #confirmAddItem { width:100%; height:48px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
+  #addItemDialog .add-type-row button { height:48px; border-radius:16px; font-size:16px; }
   #addItemDialog input, #addItemDialog .new-item-quantity { background:var(--paper); }
   #addItemDialog input { margin:20px 0; min-height:60px; padding:16px; }
   #addItemDialog .add-item-heading { margin-bottom:24px; }
@@ -1483,7 +1485,7 @@
   adminView.querySelector('.admin-view-header').prepend(adminMenu);
   adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect);
   function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').textContent='+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
-  document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').textContent=expanded?'×':'+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
+  document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').textContent='+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
   function updateAdminHeaderOffset() {
     adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height)}px`);
   }
