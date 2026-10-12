@@ -604,7 +604,7 @@
     </div>
 
     <div id="adminKeypad" class="quantity-keypad" hidden aria-label="관리자 번호 키패드">
-      <div class="keypad-grid"><button type="button" data-admin-key="1">1</button><button type="button" data-admin-key="2">2</button><button type="button" data-admin-key="3">3</button><button type="button" data-admin-key="4">4</button><button type="button" data-admin-key="5">5</button><button type="button" data-admin-key="6">6</button><button type="button" data-admin-key="7">7</button><button type="button" data-admin-key="8">8</button><button type="button" data-admin-key="9">9</button><button type="button" data-admin-key="clear" aria-label="관리자 번호 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H21V20H9L2 12Z"/><path d="M12 9L18 15M18 9L12 15"/></svg></button><button type="button" data-admin-key="0">0</button><button type="button" data-admin-key="submit" aria-label="관리자 로그인">→</button></div>
+      <div class="keypad-grid"><button type="button" data-admin-key="1">1</button><button type="button" data-admin-key="2">2</button><button type="button" data-admin-key="3">3</button><button type="button" data-admin-key="4">4</button><button type="button" data-admin-key="5">5</button><button type="button" data-admin-key="6">6</button><button type="button" data-admin-key="7">7</button><button type="button" data-admin-key="8">8</button><button type="button" data-admin-key="9">9</button><button type="button" data-admin-key="clear" aria-label="관리자 번호 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-admin-key="0">0</button><button type="button" data-admin-key="submit" aria-label="관리자 로그인">→</button></div>
     </div>
     <div id="sections"></div>
     <button class="save-btn" id="saveBtn">저장</button>
@@ -630,7 +630,7 @@
   </div>
 
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
-  <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H21V20H9L2 12Z"/><path d="M12 9L18 15M18 9L12 15"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
+  <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
 </div>
 <script>
   const DATA = [
@@ -818,7 +818,7 @@
     quantityKeypad.hidden = false;
     document.body.classList.add('keypad-open');
     input.focus({ preventScroll: true });
-    requestAnimationFrame(() => input.scrollIntoView({ block: 'nearest' }));
+    requestAnimationFrame(() => input.closest('.item').scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
   }
   quantityKeypad.addEventListener('pointerdown', e => e.preventDefault());
   quantityKeypad.addEventListener('click', e => {
@@ -837,7 +837,7 @@
     else {
       closeQuantityKeypad();
       row.querySelector('.seg-btn')?.focus({ preventScroll: true });
-      row.scrollIntoView({ block: 'nearest' });
+      requestAnimationFrame(() => row.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
     }
   }
   function advanceFromItem(row) {
