@@ -463,7 +463,7 @@
     margin-bottom: 16px;
     box-sizing: border-box;
   }
-  .admin-view-header { height:auto; min-height:48px; align-items:flex-start; }
+  .admin-view-header { height:auto; min-height:44px; align-items:flex-start; }
   .admin-sticky-header #adminTabs { display:flex; flex-direction:column; position:relative; width:180px; margin:0 !important; gap:0; padding:2px 0; background:var(--paper); border-radius:24px; overflow:hidden; }
   #adminTabs .admin-tab { flex:none; max-height:44px; opacity:1; overflow:hidden; transition:max-height .24s ease, opacity .2s ease; order:0; width:100%; height:44px; padding:0 44px 0 16px; text-align:left; font-size:16px; background:transparent; color:var(--ink); }
   #adminTabs .admin-tab.active { order:-1; background:transparent; color:var(--ink); }
@@ -571,7 +571,7 @@
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; margin-right:-12px; }
-  .target-order-edit { font-size:14px !important; }
+  .target-order-edit { font-size:15px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0; background:transparent; color:var(--ink-sub); cursor:pointer; }
   .target-select { display:none; width:24px; height:24px; border:2px solid var(--line); border-radius:50%; background:transparent; color:var(--line); padding:0; flex-shrink:0; touch-action:manipulation; }
   .target-select[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
@@ -579,8 +579,11 @@
   .drag-preview .target-select { display:inline-flex; align-items:center; justify-content:center; }
   .drag-preview { border:0; }
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
-  #addItemBack { width:38px; height:38px; }
-  #addItemBack svg { width:20px; height:20px; }
+  #addItemBack, #editModeBack { display:none; width:48px; height:48px; flex-shrink:0; background:var(--paper); color:var(--ink); }
+  #adminView:has(#addItemDialog:not([hidden])) #addItemBack { display:flex; }
+  #adminView:has(#targetEditor.order-mode:not([hidden])) #editModeBack { display:flex; }
+  #addItemBack svg, #editModeBack svg { width:18px; height:18px; }
+  .add-item-heading { display:none !important; }
   #summaryExportBtn { display:block; width:100%; height:56px; margin:20px 0; border:0; border-radius:16px; background:var(--accent); color:#fff; font:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   #summaryExportBtn:disabled { opacity:.5; }
   #adminSummary[hidden] + #summaryExportBtn { display:none; }
@@ -588,12 +591,12 @@
   #addItemDialog .add-type-row button:not(.active) { background:var(--accent-soft); color:var(--accent); }
   #confirmAddItem { background:var(--accent) !important; color:#fff !important; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-  #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: transparent; color: var(--ink); font-family: inherit; }
+  #addItemDialog { width: 100%; margin-top: 0; box-sizing: border-box; border: 0; border-radius: 16px; padding: 8px 22px; background: transparent; color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
   .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:12px 4px 0; margin-bottom:0; }
   .admin-sticky-header::after { content:""; position:absolute; top:100%; left:0; right:0; height:24px; background:linear-gradient(to bottom,var(--bg),transparent); pointer-events:none; }
-  #targetPageNav { position:static; background:transparent; margin:12px 0 16px; padding:0; }
+  #targetPageNav { position:sticky; top:var(--admin-header-offset,72px); z-index:9; background:var(--bg); margin:0; padding:4px 0 8px; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: transparent; border-radius: 0; padding: 8px 22px 16px; }
@@ -630,10 +633,10 @@
   .order-mode .target-page-tools, .order-mode #targetEditorActions, .order-mode #targetEditorStatus { display:none; }
   body.inventory-order-mode { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
   #orderDoneBar[hidden] { display:none; }
-  #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
+  #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:10px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
   #orderDeleteBtn[hidden] { display:none; }
   #orderDeleteBtn { color:#e0483e !important; }
-  #orderDoneBtn, #orderDeleteBtn { width:100%; height:48px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #orderDoneBtn, #orderDeleteBtn { width:100%; height:44px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
   .target-edit-row input { color:#000; border-bottom:0; border-radius:0; }
@@ -641,9 +644,9 @@
   #adminTabs { margin-bottom:14px; }
   .admin-view:has(#targetEditor:not([hidden])) #adminTabs { margin-bottom:4px; }
   body.inventory-target-view { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
-  #targetEditorActions { position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:29; margin:0; }
-  #saveTargetsBtn, #confirmAddItem { width:100%; height:48px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
-  #addItemDialog .add-type-row button { height:48px; border-radius:16px; font-size:16px; }
+  #targetEditorActions { position:fixed; bottom:10px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:29; margin:0; }
+  #saveTargetsBtn, #confirmAddItem { width:100%; height:44px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
+  #addItemDialog .add-type-row button { height:44px; border-radius:16px; font-size:16px; }
   #addItemDialog input, #addItemDialog .new-item-quantity { background:var(--paper); }
   #addItemDialog input { margin:20px 0; min-height:60px; padding:16px; }
   #addItemDialog .add-item-heading { margin-bottom:24px; }
@@ -719,6 +722,7 @@
 
   <div class="admin-view" id="adminView" hidden>
     <div class="admin-view-header">
+      <button type="button" class="page-btn" id="editModeBack" aria-label="편집에서 이전으로"></button>
       <button class="admin-btn" id="adminBackBtn" aria-label="체크리스트로">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -728,7 +732,7 @@
       </button>
     </div>
     <div class="admin-tabs" id="adminTabs">
-      <button type="button" id="adminMenuToggle" aria-label="메뉴 펼치기" aria-expanded="false">+</button>
+      <button type="button" id="adminMenuToggle" aria-label="메뉴 펼치기" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
       <button type="button" class="admin-tab" id="editTargetsBtn">재고 수정</button>
@@ -739,8 +743,9 @@
     <div id="orderDoneBar" hidden><button type="button" id="orderDeleteBtn" hidden>삭제</button><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
 
-      <div id="targetEditorFields"></div>
       <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
+      <div id="targetEditorFields"></div>
+
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
       <div class="admin-tabs" id="targetEditorActions"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button></div>
       <p id="targetEditorStatus" role="status"></p>
@@ -1484,8 +1489,8 @@
   const adminMenu=document.getElementById('adminTabs');
   adminView.querySelector('.admin-view-header').prepend(adminMenu);
   adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect);
-  function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').textContent='+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
-  document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').textContent='+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
+  function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
+  document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
   function updateAdminHeaderOffset() {
     adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height)}px`);
   }
@@ -1661,6 +1666,8 @@
     updateAdminHeaderOffset();
     if(!editing){applyOrderToChecklist();flushPending().catch(()=>{});}
   }
+  document.getElementById('editModeBack').innerHTML=document.getElementById('prevBtn').innerHTML;
+  document.getElementById('editModeBack').addEventListener('click',()=>setOrderEditing(false));
   document.getElementById('orderDoneBtn').addEventListener('click',()=>setOrderEditing(false));
 
   document.getElementById('targetPrevPage').innerHTML = document.getElementById('prevBtn').innerHTML;
@@ -2001,6 +2008,7 @@
       queueValue(TARGETS_DATE, label, label, JSON.stringify(config));
     });
   }
+  document.querySelector('.admin-view-header').prepend(document.getElementById('addItemBack'));
   const addItemDialog = document.getElementById('addItemDialog');
   adminView.appendChild(addItemDialog);
   let newItemType = 'count';
