@@ -559,7 +559,7 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  #targetEditorFields { margin-top: 0; margin-bottom: 16px; }
+  #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; }
   .target-order-edit { font-size:16px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0; background:transparent; color:var(--ink-sub); cursor:pointer; }
@@ -571,6 +571,9 @@
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
   #addItemBack { width:38px; height:38px; }
   #addItemBack svg { width:20px; height:20px; }
+  .target-page-label { margin-right:auto; font-size:14px; font-weight:700; color:var(--ink-sub); }
+  #addItemDialog .add-type-row button:not(.active) { background:var(--accent-soft); color:var(--accent); }
+  #confirmAddItem { background:var(--accent) !important; color:#fff !important; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: transparent; color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
@@ -1892,6 +1895,7 @@
       targetEditorFields.appendChild(section);
       const tools = document.createElement('div');
       tools.className = 'target-page-tools';
+      const pageLabel=document.createElement('span');pageLabel.className='target-page-label';pageLabel.textContent=`${index+1}페이지`;tools.appendChild(pageLabel);
       const add = document.createElement('button');
       add.type = 'button'; add.className = 'target-add-btn'; add.textContent = '추가';
       add.addEventListener('click', () => openAddItem(index+1));
