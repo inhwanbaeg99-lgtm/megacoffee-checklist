@@ -559,8 +559,8 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  #targetEditorFields { margin-top: 6px; margin-bottom: 16px; }
-  .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
+  #targetEditorFields { margin-top: 0; margin-bottom: 16px; }
+  .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; }
   .target-order-edit { font-size:16px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0; background:transparent; color:var(--ink-sub); cursor:pointer; }
   .target-select { display:none; width:24px; height:24px; border:2px solid var(--line); border-radius:50%; background:transparent; color:var(--line); padding:0; flex-shrink:0; touch-action:manipulation; }
@@ -569,14 +569,14 @@
   .drag-preview .target-select { display:inline-flex; align-items:center; justify-content:center; }
   .drag-preview { border:0; }
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
-  #addItemBack { width:44px; height:44px; }
-  #addItemBack svg { width:24px; height:24px; }
+  #addItemBack { width:38px; height:38px; }
+  #addItemBack svg { width:20px; height:20px; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: transparent; color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
-  .admin-sticky-header { position:sticky; top:0; z-index:10; background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding:24px 4px 12px; margin-bottom:-6px; }
-  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-top:0; padding-bottom:12px; margin-top:0; margin-bottom:-6px; }
+  .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:24px 4px 0; margin-bottom:0; }
+  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-top:0; padding-bottom:8px; margin-top:0; margin-bottom:-4px; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: transparent; border-radius: 0; padding: 8px 22px 16px; }
@@ -612,12 +612,23 @@
   .order-mode .target-page-tools, .order-mode #targetEditorActions, .order-mode #targetEditorStatus { display:none; }
   body.inventory-order-mode { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
   #orderDoneBar[hidden] { display:none; }
-  #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
+  #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
   #orderDeleteBtn[hidden] { display:none; }
   #orderDeleteBtn { color:#e0483e !important; }
   #orderDoneBtn, #orderDeleteBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
+  .target-edit-row input { border-bottom:1px solid var(--line); border-radius:0; }
+  #adminTabs { margin-bottom:14px; }
+  .admin-view:has(#targetEditor:not([hidden])) #adminTabs { margin-bottom:4px; }
+  body.inventory-target-view { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
+  #targetEditorActions { position:fixed; bottom:4px; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:29; margin:0; }
+  #saveTargetsBtn, #confirmAddItem { width:100%; height:56px; flex:auto; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; }
+  #addItemDialog .add-type-row button { height:56px; border-radius:16px; font-size:16px; }
+  #addItemDialog input, #addItemDialog .new-item-quantity { background:var(--paper); }
+  #addItemDialog input { margin:12px 0; }
+  #addItemDialog, .order-mode { touch-action:pan-y; }
+  .swipe-return-preview { position:fixed; z-index:7; pointer-events:none; background:var(--bg); overflow:hidden; }
   .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -703,15 +714,15 @@
       <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
       <div id="targetEditorFields"></div>
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
-      <div class="admin-tabs" id="targetEditorActions"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
+      <div class="admin-tabs" id="targetEditorActions"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button></div>
       <p id="targetEditorStatus" role="status"></p>
     </form>
   </div>
 
 <div id="addItemDialog" hidden><form id="addItemForm"><div class="add-item-heading"><button type="button" class="page-btn" id="addItemBack" aria-label="이전으로"></button><span>품목 추가</span></div>
-<label>품목명 (필수)<input id="newItemLabel" type="text" maxlength="60" autocomplete="off" /></label>
+<input id="newItemLabel" type="text" maxlength="60" autocomplete="off" placeholder="품목명 (필수)" aria-label="품목명 (필수)" />
 <div class="add-type-row"><button type="button" class="admin-tab active" id="newItemCountType">기준 수량</button><button type="button" class="admin-tab" id="newItemSegmentType">1/3</button></div>
-<div id="newItemCountFields"><label for="newItemQty">기준 수량 (필수)</label><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><label>이 수량 이하일시 발주 (선택)<input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" /></label></div>
+<div id="newItemCountFields"><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량 (필수)" placeholder="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="이 수량 이하일시 발주 (선택)" aria-label="이 수량 이하일시 발주 (선택)" /></div>
 <p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button></div></form></div>
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
@@ -1428,7 +1439,7 @@
   }, 30000);
 
   /* ---------- Admin login & summary view ---------- */
-  const ADMIN_PIN = '1234';
+  const ADMIN_PIN = '7879';
   const sheetEl = document.getElementById('sheet');
   const eyebrowWrap = document.getElementById('eyebrowWrap');
   const eyebrowBtn = document.getElementById('eyebrowBtn');
@@ -1444,7 +1455,7 @@
   adminView.prepend(adminStickyHeader);
   adminStickyHeader.append(adminView.querySelector('.admin-view-header'), document.getElementById('adminTabs'), adminDateSelect);
   function updateAdminHeaderOffset() {
-    adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height-8)}px`);
+    adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height)}px`);
   }
   new ResizeObserver(updateAdminHeaderOffset).observe(adminStickyHeader);
 
@@ -1824,6 +1835,7 @@
     setOrderEditing(false);
     currentScrollItem=null;inputScrollSpace.style.height='0px';
     applyOrderToChecklist();
+    document.body.classList.remove('inventory-target-view');
     document.getElementById('addItemDialog').hidden = true;
     targetEditor.hidden = true;
     targetKeypad.hidden = true;
@@ -1836,6 +1848,7 @@
   }
   document.getElementById('editTargetsBtn').addEventListener('click', () => {
     setOrderEditing(false);
+    document.body.classList.add('inventory-target-view');
     document.getElementById('addItemDialog').hidden = true;
     adminSummaryEl.hidden = true;
     document.getElementById('adminDateSelect').hidden = true;
@@ -1922,7 +1935,6 @@
     if (/^[0-9]$/.test(event.key)) { event.preventDefault(); targetKeypad.querySelector(`[data-target-key="${event.key}"]`).click(); }
     else if (event.key === 'Backspace') { event.preventDefault(); event.target.value = event.target.value.slice(0,-1); replaceTargetValue = false; }
   });
-  document.getElementById('cancelTargetsBtn').addEventListener('click', closeTargetEditor);
   function saveTargetDraft() {
     const updates = {};
     targetEditorFields.querySelectorAll('[data-target-label]').forEach(input => {
@@ -1971,14 +1983,55 @@
     targetEditor.hidden = true;
     adminSummaryEl.hidden = true;
     addItemDialog.hidden = false;
+    document.getElementById('adminTabs').hidden=true;
     window.scrollTo({top:0});
     document.activeElement?.blur();
     inputScrollSpace.style.height = '0px'; currentScrollItem = null;
   }
   document.getElementById('addItemBack').innerHTML = document.getElementById('prevBtn').innerHTML;
-  document.getElementById('addItemBack').addEventListener('click', () => {
-    addItemDialog.hidden = true; targetEditor.hidden = false;
+  function returnFromAdd() { addItemDialog.hidden=true;targetEditor.hidden=false;document.getElementById('adminTabs').hidden=false;updateAdminHeaderOffset(); }
+  document.getElementById('addItemBack').addEventListener('click', returnFromAdd);
+  let returnSwipe=null;
+  document.addEventListener('pointerdown',event=>{
+    if(event.pointerType!=='touch' || dragState || event.target.closest('input,button,select'))return;
+    const frame=!addItemDialog.hidden?addItemDialog:targetEditor.classList.contains('order-mode')?targetEditor:null;
+    if(!frame || !frame.contains(event.target))return;
+    returnSwipe={frame,id:event.pointerId,x:event.clientX,y:event.clientY,dx:0,active:false};
   });
+  document.addEventListener('pointermove',event=>{
+    const swipe=returnSwipe;if(!swipe || event.pointerId!==swipe.id)return;
+    const dx=event.clientX-swipe.x,dy=event.clientY-swipe.y;
+    if(!swipe.active){
+      if(Math.abs(dy)>12 && Math.abs(dy)>Math.abs(dx)){returnSwipe=null;return;}
+      if(dx<12 || dx<Math.abs(dy)*1.4)return;
+      cancelPendingDrag();swipe.active=true;
+      const rect=swipe.frame.getBoundingClientRect();
+      const preview=targetEditor.cloneNode(true);preview.hidden=false;preview.classList.remove('order-mode');
+      preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+      preview.querySelectorAll('input').forEach(el=>el.disabled=true);
+      preview.querySelectorAll('.order-editing').forEach(el=>el.classList.remove('order-editing'));
+      preview.querySelectorAll('.target-select,.reorder-indicator').forEach(el=>el.remove());
+      preview.classList.add('swipe-return-preview');preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${innerHeight}px;`;
+      document.body.appendChild(preview);swipe.preview=preview;
+      swipe.frame.style.position='relative';swipe.frame.style.zIndex='8';swipe.frame.style.background='var(--bg)';
+    }
+    event.preventDefault();swipe.dx=Math.max(0,dx);swipe.frame.style.transform=`translate3d(${swipe.dx}px,0,0)`;
+  },{passive:false});
+  document.addEventListener('touchmove',event=>{if(returnSwipe?.active)event.preventDefault();},{passive:false});
+  function finishReturnSwipe(event){
+    const swipe=returnSwipe;if(!swipe || event.pointerId!==swipe.id)return;
+    returnSwipe=null;if(!swipe.active)return;
+    const completed=event.type!=='pointercancel' && swipe.dx>Math.min(100,innerWidth*.25);
+    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:200;
+    swipe.frame.style.transition=`transform ${duration}ms ease-out`;
+    swipe.frame.style.transform=completed?`translate3d(${innerWidth}px,0,0)`:'translate3d(0,0,0)';
+    setTimeout(()=>{
+      swipe.preview?.remove();swipe.frame.style.removeProperty('transform');swipe.frame.style.removeProperty('transition');swipe.frame.style.removeProperty('position');swipe.frame.style.removeProperty('z-index');swipe.frame.style.removeProperty('background');
+      if(completed){if(swipe.frame===addItemDialog)returnFromAdd();else setOrderEditing(false);}
+    },duration);
+  }
+  document.addEventListener('pointerup',finishReturnSwipe);
+  document.addEventListener('pointercancel',finishReturnSwipe);
   document.getElementById('addItemForm').addEventListener('submit', async event => {
     event.preventDefault();
     const label = document.getElementById('newItemLabel').value.trim();
