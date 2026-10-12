@@ -561,8 +561,8 @@
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
   .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"] { display: flex; align-items: center; justify-content: center; color: #000; }
   .keypad-grid button[data-key="0"], .keypad-grid button[data-key="1"], .keypad-grid button[data-key="2"], .keypad-grid button[data-key="3"], .keypad-grid button[data-key="4"], .keypad-grid button[data-key="5"], .keypad-grid button[data-key="6"], .keypad-grid button[data-key="7"], .keypad-grid button[data-key="8"], .keypad-grid button[data-key="9"], .keypad-grid button[data-admin-key]:not([data-admin-key="clear"]):not([data-admin-key="submit"]) { color: #555; }
-  @media (hover: hover) { .keypad-grid button:hover { color: #000; } }
-  .keypad-grid button:active { color: #000; }
+  @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
+  .keypad-grid button:active { color: #000 !important; }
   .quantity-keypad button:active { background: var(--accent-soft); }
 </style>
 </head>
