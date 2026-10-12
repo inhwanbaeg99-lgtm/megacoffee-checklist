@@ -1,8 +1,9 @@
-const CACHE_NAME = 'mgc-checklist-v2';
+const CACHE_NAME = 'mgc-checklist-v3';
 const SHELL_FILES = [
   './',
   './index.html',
   './manifest.json',
+  './hangul.min.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
 ];
