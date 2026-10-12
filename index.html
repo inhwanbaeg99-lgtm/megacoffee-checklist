@@ -564,7 +564,7 @@
   .target-delete { display:none; width:26px; height:26px; border:0; border-radius:50%; background:transparent; color:#e0483e; font:inherit; font-size:22px; line-height:1; transform:translateY(-2px); padding:0; flex-shrink:0; touch-action:manipulation; }
   .target-edit-page.order-editing .target-delete { display:inline-flex; align-items:center; justify-content:center; }
   .drag-preview .target-delete { display:inline-flex; align-items:center; justify-content:center; }
-  .drag-preview { border:1px solid #555; }
+  .drag-preview { border:0; }
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
   #addItemBack { width:44px; height:44px; }
   #addItemBack svg { width:24px; height:24px; }
@@ -577,12 +577,11 @@
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
-  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; background:var(--paper); border:1px solid #555; border-top:0; border-radius:0; margin:0; padding:6px 12px; }
-  .target-edit-page.order-editing .target-page-tools + .target-edit-row { border-top:1px solid #555; border-radius:8px 8px 0 0; }
-  .target-edit-page.order-editing .target-edit-row:has(+ .target-page-add) { border-radius:0 0 8px 8px; }
-  .target-edit-page.order-editing .target-edit-row input { padding:4px 0; }
+  .target-edit-page.order-editing .target-edit-row { touch-action:pan-y; user-select:none; }
+  .target-item-name { position:relative; }
+  .target-delete { position:absolute; left:-22px; top:50%; margin-top:-13px; }
   .target-edit-row.dragging { opacity: .2; }
-  .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: var(--paper); border-radius: 10px; box-shadow: 0 8px 24px #0002; opacity: .96; will-change: transform; }
+  .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: color-mix(in srgb, var(--paper) 92%, var(--ink) 8%); border-radius: 6px; box-shadow: 0 3px 12px #0001; opacity: .98; will-change: transform; }
   .add-type-row { display: flex; gap: 8px; }
   .add-type-row button { flex: 1; }
   .new-item-quantity { display:flex; align-items:center; background:var(--bg); border-radius:10px; margin-top:12px; padding:0 8px; }
@@ -1710,27 +1709,43 @@
     if (y<70) window.scrollBy(0,-8); else if(y>innerHeight-70)window.scrollBy(0,8);
     dragFrame=requestAnimationFrame(updateDragFrame);
   }
+  let pendingDrag = null;
+  function cancelPendingDrag() {
+    if (pendingDrag) clearTimeout(pendingDrag.timer);
+    pendingDrag = null;
+  }
+  targetEditorFields.addEventListener('contextmenu',event=>{
+    if(event.target.closest('.order-editing'))event.preventDefault();
+  });
   targetEditorFields.addEventListener('pointerdown', event => {
     if(event.target.closest('.target-delete')) return;
     const row=event.target.closest('.target-edit-row');
     const section=row?.closest('.target-edit-page');
     if(!section?.classList.contains('order-editing') || event.button>0) return;
-    event.preventDefault();
-    targetKeypad.hidden=true;activeTargetInput=null;
-    const rect=row.getBoundingClientRect();
-    const preview=row.cloneNode(true);preview.classList.add('drag-preview');
-    preview.style.cssText=`left:${rect.left-16}px;top:${rect.top}px;width:${rect.width+32}px;height:${rect.height}px;padding:6px 16px;box-sizing:border-box;`;
-    preview.setAttribute('aria-hidden','true');preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
-    document.body.appendChild(preview);
-    row.classList.add('dragging');
-    dragState={row,section,preview,pointerId:event.pointerId,startY:event.clientY,y:event.clientY,changed:false};
-    dragFrame=requestAnimationFrame(updateDragFrame);
+    cancelPendingDrag();
+    const pointer={row,section,pointerId:event.pointerId,x:event.clientX,y:event.clientY};
+    pointer.timer=setTimeout(()=>{
+      if(pendingDrag!==pointer || !row.isConnected || !section.classList.contains('order-editing')) return;
+      pendingDrag=null;
+      targetKeypad.hidden=true;activeTargetInput=null;
+      const rect=row.getBoundingClientRect();
+      const preview=row.cloneNode(true);preview.classList.add('drag-preview');
+      preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;padding:10px 0;box-sizing:border-box;`;
+      preview.setAttribute('aria-hidden','true');preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+      document.body.appendChild(preview);row.classList.add('dragging');
+      dragState={row,section,preview,pointerId:pointer.pointerId,startY:pointer.y,y:pointer.y,changed:false};
+      dragFrame=requestAnimationFrame(updateDragFrame);
+    },350);
+    pendingDrag=pointer;
   });
+  document.addEventListener('touchmove',event=>{if(dragState)event.preventDefault();},{passive:false});
   document.addEventListener('pointermove', event=>{
+    if(pendingDrag && event.pointerId===pendingDrag.pointerId && Math.hypot(event.clientX-pendingDrag.x,event.clientY-pendingDrag.y)>8)cancelPendingDrag();
     if(!dragState || event.pointerId!==dragState.pointerId)return;
     event.preventDefault();dragState.y=event.clientY;
   },{passive:false});
   function endOrderDrag(event) {
+    if(pendingDrag && event.pointerId===pendingDrag.pointerId)cancelPendingDrag();
     if(!dragState || event.pointerId!==dragState.pointerId)return;
     cancelAnimationFrame(dragFrame);
     dragState.row.classList.remove('dragging');dragState.preview.remove();
