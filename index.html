@@ -805,22 +805,37 @@
   const itemRefs = {};
 
   const quantityKeypad = document.getElementById('quantityKeypad');
+  const inputScrollSpace = document.createElement('div');
+  inputScrollSpace.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(inputScrollSpace);
+  let currentScrollItem = null;
   let activeQuantityInput = null;
   let replaceQuantity = false;
   function closeQuantityKeypad() {
     quantityKeypad.hidden = true;
     document.body.classList.remove('keypad-open');
     activeQuantityInput = null;
+    currentScrollItem = null;
+    inputScrollSpace.style.height = '0px';
   }
   function scrollToInputItem(row) {
+    currentScrollItem = row;
     requestAnimationFrame(() => {
+      if (currentScrollItem !== row || !row.isConnected) return;
+      inputScrollSpace.style.height = '0px';
       const firstRow = row.closest('.section').querySelector('.item');
       const firstItemTop = firstRow.getBoundingClientRect().top + window.scrollY;
       const rowTop = row.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: Math.max(0, rowTop - firstItemTop),
+      const targetTop = Math.max(0, rowTop - firstItemTop);
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      inputScrollSpace.style.height = `${Math.max(0, Math.ceil(targetTop - maxScroll))}px`;
+      window.scrollTo({ top: targetTop,
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     });
   }
+  window.addEventListener('resize', () => {
+    if (currentScrollItem) scrollToInputItem(currentScrollItem);
+  });
   function openQuantityKeypad(input) {
     activeQuantityInput = input;
     replaceQuantity = true;
