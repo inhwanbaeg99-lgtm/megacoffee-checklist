@@ -557,8 +557,12 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  #targetEditorFields { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; margin-bottom: 16px; }
+  .target-edit-row > label { font-size: 16px; font-weight: 700; line-height: 1.4; }
+  .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
+  #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
   .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
-  .target-edit-row input { width: 80px; font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); }
+  .target-edit-row input { width: 80px; font-family: inherit; font-size: 16px; font-weight: 700; text-align: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; color: var(--accent); background: var(--bg); }
   .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -636,11 +640,11 @@
     <div class="admin-tabs" id="adminTabs">
       <button type="button" class="admin-tab active" data-tab="reorder">발주 현황</button>
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
-      <button type="button" class="admin-tab" id="editTargetsBtn" style="margin-left:auto">수정</button>
+      <button type="button" class="admin-tab" id="editTargetsBtn" style="margin-left:auto">재고 수정</button>
     </div>
     <div id="adminSummary"></div>
     <form id="targetEditor" hidden>
-      <p>기준 수량 수정</p>
+      <div class="admin-page-label">기준 수량</div>
       <div id="targetEditorFields"></div>
       <div class="admin-tabs"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
       <p id="targetEditorStatus" role="status"></p>
@@ -1460,11 +1464,15 @@
     adminSummaryEl.hidden = false;
     document.getElementById('adminDateSelect').hidden = false;
     document.getElementById('adminTabs').hidden = false;
+    document.getElementById('editTargetsBtn').classList.remove('active');
+    adminTabBtns.forEach(button => button.classList.toggle('active', button.dataset.tab === adminTab));
   }
   document.getElementById('editTargetsBtn').addEventListener('click', () => {
     adminSummaryEl.hidden = true;
     document.getElementById('adminDateSelect').hidden = true;
-    document.getElementById('adminTabs').hidden = true;
+    document.getElementById('adminTabs').hidden = false;
+    adminTabBtns.forEach(button => button.classList.remove('active'));
+    document.getElementById('editTargetsBtn').classList.add('active');
     targetEditor.hidden = false;
     targetEditorStatus.textContent = '';
     targetEditorFields.replaceChildren();
@@ -1494,6 +1502,7 @@
           if (item.orderThreshold !== undefined) {
             const note = document.createElement('label');
             note.textContent = '이 수량 이하일 때 발주';
+            note.className = 'threshold-label';
             const threshold = input.cloneNode();
             threshold.value = item.orderThreshold;
             delete threshold.dataset.targetLabel;
@@ -1551,6 +1560,7 @@
 
   adminTabBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
+      closeTargetEditor();
       adminTab = btn.dataset.tab;
       adminTabBtns.forEach((b) => b.classList.toggle('active', b === btn));
       renderAdminTab();
