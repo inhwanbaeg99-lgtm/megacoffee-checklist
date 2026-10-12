@@ -557,6 +557,9 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .target-edit-row input { width: 80px; font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); }
+  .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
@@ -631,10 +634,17 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div class="admin-tabs" id="adminTabs">
-      <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
+      <button type="button" class="admin-tab active" data-tab="reorder">발주 현황</button>
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
+      <button type="button" class="admin-tab" id="editTargetsBtn" style="margin-left:auto">수정</button>
     </div>
     <div id="adminSummary"></div>
+    <form id="targetEditor" hidden>
+      <p>기준 수량 수정</p>
+      <div id="targetEditorFields"></div>
+      <div class="admin-tabs"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
+      <p id="targetEditorStatus" role="status"></p>
+    </form>
   </div>
 
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
@@ -738,6 +748,23 @@
     ],
   ];
 
+  const TARGETS_KEY = 'megacoffee-targets-v1';
+  const TARGETS_DATE = 'settings';
+  let targetSettings = {};
+  try { targetSettings = JSON.parse(localStorage.getItem(TARGETS_KEY)) || {}; } catch {}
+  function applyTargetSettings(settings) {
+    DATA.flat().forEach(item => {
+      const config = settings[item.label];
+      if (!config || item.segments) return;
+      if (Number.isInteger(config.qty) && config.qty >= 0 && config.qty <= 999999) {
+        item.qty = `${config.qty}${item.qty.replace(/[0-9]+/, '')}`;
+      }
+      if (item.orderThreshold !== undefined && Number.isInteger(config.threshold) && config.threshold >= 0 && config.threshold <= 999999) {
+        item.orderThreshold = config.threshold;
+      }
+    });
+  }
+  applyTargetSettings(targetSettings);
   const STORAGE_KEY = 'megacoffee-checklist-v1';
   const SCRIPT_URL =
     'https://script.google.com/macros/s/AKfycbzEffsg53ZmMEf_wTlUZ2eGZW4XVDHLPxna8uY8zlsGdlm64M2zbscE4ppKBNAWgJoI/exec';
@@ -805,7 +832,7 @@
     try {
       const res = await fetchWithTimeout(`${SCRIPT_URL}?dates=1`);
       const data = await res.json();
-      return data.dates || [];
+      return (data.dates || []).filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
     } catch (e) {
       return [];
     }
@@ -1404,9 +1431,118 @@
     }
   }
 
+  const targetEditor = document.getElementById('targetEditor');
+  const targetEditorFields = document.getElementById('targetEditorFields');
+  const targetEditorStatus = document.getElementById('targetEditorStatus');
+  function refreshTargetLabels() {
+    DATA.flat().forEach(item => {
+      const target = itemRefs[item.label]?.row.querySelector('.qty-target');
+      if (target) target.textContent = item.qty;
+    });
+  }
+  async function syncTargetSettings() {
+    const remote = await fetchDateValues(TARGETS_DATE);
+    if (!remote) return;
+    Object.entries(remote).forEach(([label, value]) => {
+      if (pendingValues[`${TARGETS_DATE}:${label}`]) return;
+      try { targetSettings[label] = typeof value === 'string' ? JSON.parse(value) : value; } catch {}
+    });
+    Object.values(pendingValues).filter(entry => entry.date === TARGETS_DATE).forEach(entry => {
+      try { targetSettings[entry.itemId] = JSON.parse(entry.value); } catch {}
+    });
+    localStorage.setItem(TARGETS_KEY, JSON.stringify(targetSettings));
+    applyTargetSettings(targetSettings);
+    refreshTargetLabels();
+    if (!adminView.hidden && targetEditor.hidden) renderAdminTab();
+  }
+  function closeTargetEditor() {
+    targetEditor.hidden = true;
+    adminSummaryEl.hidden = false;
+    document.getElementById('adminDateSelect').hidden = false;
+    document.getElementById('adminTabs').hidden = false;
+  }
+  document.getElementById('editTargetsBtn').addEventListener('click', () => {
+    adminSummaryEl.hidden = true;
+    document.getElementById('adminDateSelect').hidden = true;
+    document.getElementById('adminTabs').hidden = true;
+    targetEditor.hidden = false;
+    targetEditorStatus.textContent = '';
+    targetEditorFields.replaceChildren();
+    DATA.forEach((items, index) => {
+      const heading = document.createElement('div');
+      heading.className = 'admin-page-label';
+      heading.textContent = `${index+1} 페이지`;
+      targetEditorFields.appendChild(heading);
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'target-edit-row';
+        const label = document.createElement('label');
+        label.textContent = item.label;
+        if (item.segments) {
+          const note = document.createElement('small');
+          note.textContent = '1/3 선택 기준';
+          row.append(label, note);
+        } else {
+          const input = document.createElement('input');
+          input.type = 'number'; input.inputMode = 'numeric'; input.min = '0'; input.max = '999999'; input.step = '1'; input.required = true;
+          input.value = parseTargetNumber(item.qty);
+          input.dataset.targetLabel = item.label;
+          input.id = `target-${index}-${items.indexOf(item)}`;
+          label.htmlFor = input.id;
+          input.setAttribute('aria-label', `${item.label} 기준 수량`);
+          row.append(label, input);
+          if (item.orderThreshold !== undefined) {
+            const note = document.createElement('label');
+            note.textContent = '이 수량 이하일 때 발주';
+            const threshold = input.cloneNode();
+            threshold.value = item.orderThreshold;
+            delete threshold.dataset.targetLabel;
+            threshold.dataset.thresholdLabel = item.label;
+            threshold.id += '-threshold'; note.htmlFor = threshold.id;
+            threshold.setAttribute('aria-label', `${item.label} 발주 기준`);
+            row.append(note, threshold);
+          }
+        }
+        targetEditorFields.appendChild(row);
+      });
+    });
+    window.scrollTo({top:0});
+  });
+  document.getElementById('cancelTargetsBtn').addEventListener('click', closeTargetEditor);
+  targetEditor.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!targetEditor.reportValidity()) return;
+    const button = document.getElementById('saveTargetsBtn');
+    const updates = {};
+    targetEditorFields.querySelectorAll('[data-target-label]').forEach(input => {
+      const label = input.dataset.targetLabel;
+      const threshold = [...targetEditorFields.querySelectorAll('[data-threshold-label]')].find(el => el.dataset.thresholdLabel === label);
+      const item = DATA.flat().find(item => item.label === label);
+      if (Number(input.value) === parseTargetNumber(item.qty) && (!threshold || Number(threshold.value) === item.orderThreshold)) return;
+      updates[label] = {qty:Number(input.value), ...(threshold ? {threshold:Number(threshold.value)} : {})};
+    });
+    targetSettings = {...targetSettings, ...updates};
+    localStorage.setItem(TARGETS_KEY, JSON.stringify(targetSettings));
+    applyTargetSettings(targetSettings);
+    refreshTargetLabels();
+    Object.entries(updates).forEach(([label, config]) => {
+      queueValue(TARGETS_DATE, label, label, JSON.stringify(config));
+    });
+    button.disabled = true;
+    targetEditorStatus.textContent = '저장 중…';
+    try {
+      await flushPending();
+      closeTargetEditor();
+      renderAdminTab();
+    } catch {
+      targetEditorStatus.textContent = '서버 저장 대기 중입니다. 변경값은 기기에 보관되며 자동으로 재시도합니다.';
+    } finally { button.disabled = false; }
+  });
+  syncTargetSettings();
+
   let adminTab = 'reorder';
   let lastValuesMap = {};
-  const adminTabBtns = document.querySelectorAll('.admin-tab');
+  const adminTabBtns = document.querySelectorAll('.admin-tab[data-tab]');
 
   function renderAdminTab() {
     if (adminTab === 'reorder') buildReorderSummary(lastValuesMap);
@@ -1440,6 +1576,7 @@
   }
 
   async function enterAdminView() {
+    closeTargetEditor();
     sheetEl.style.display = 'none';
     bottomNav.style.display = 'none';
     adminView.hidden = false;
