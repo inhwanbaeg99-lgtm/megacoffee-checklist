@@ -1679,9 +1679,9 @@
   }
   function openTargetKeypad(input) {
     targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
-    input.classList.add('active-target');
     const page = Number(input.closest('.target-edit-page').dataset.page);
     if (page !== targetPage) showTargetPage(page);
+    input.classList.add('active-target');
     activeTargetInput = input;
     replaceTargetValue = true;
     input.closest('.target-edit-row').after(targetKeypad);
