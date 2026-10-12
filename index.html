@@ -1717,7 +1717,7 @@
     dot.setAttribute('aria-label', `${index+1} 페이지`);
     targetPageDots.appendChild(dot);
   });
-  function showTargetPage(page) {
+  function showTargetPage(page, keepHeaderPinned=false) {
     currentScrollItem = null; inputScrollSpace.style.height = '0px';
     targetPage = Math.max(1, Math.min(DATA.length, page));
     updateAdminHeaderOffset();
@@ -1728,7 +1728,7 @@
     [...targetPageDots.children].forEach((dot, index) => dot.classList.toggle('active', index+1 === targetPage));
     document.getElementById('targetPrevPage').style.visibility = targetPage === 1 ? 'hidden' : '';
     document.getElementById('targetNextPage').style.visibility = targetPage === DATA.length ? 'hidden' : '';
-    window.scrollTo({top:0});
+    window.scrollTo({top:keepHeaderPinned ? Math.max(0,adminView.getBoundingClientRect().top+window.scrollY) : 0});
   }
   document.getElementById('targetPrevPage').addEventListener('click', () => showTargetPage(targetPage-1));
   document.getElementById('targetNextPage').addEventListener('click', () => showTargetPage(targetPage+1));
@@ -1963,6 +1963,7 @@
     adminTabBtns.forEach(button => button.classList.toggle('active', button.dataset.tab === adminTab));
   }
   document.getElementById('editTargetsBtn').addEventListener('click', () => {
+    const keepHeaderPinned=adminStickyHeader.getBoundingClientRect().top<=1;
     collapseAdminMenu();
     setOrderEditing(false);
     document.body.classList.add('inventory-target-view');
@@ -2045,7 +2046,7 @@
     });
     targetEditorFields.querySelectorAll('input').forEach(sizeTargetInput);
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(refreshOrderButtons);
-    showTargetPage(1);
+    showTargetPage(1,keepHeaderPinned);
   });
   targetEditorFields.addEventListener('focusin', event => { if (event.target.matches('input') && !event.target.closest('.order-editing')) openTargetKeypad(event.target); });
   targetEditorFields.addEventListener('click', event => { if (event.target.matches('input') && !event.target.closest('.order-editing')) openTargetKeypad(event.target); });
