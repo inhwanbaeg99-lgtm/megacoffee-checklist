@@ -1161,15 +1161,15 @@
     if (firstInput) openQuantityKeypad(firstInput);
   }
 
-  prevBtn.addEventListener('click', () => showPage(currentPage - 1));
-  nextBtn.addEventListener('click', () => showPage(currentPage + 1));
-  saveBtn.addEventListener('click', async () => {
+  let pageSaveInProgress = false;
+  async function saveAndNavigate(targetPage, requireComplete) {
+    if (pageSaveInProgress) return;
     const rows = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .item`)];
     const missing = rows.find(row => {
       const value = state.values[row.dataset.id];
       return value === undefined || value === null || String(value).trim() === '';
     });
-    if (missing) {
+    if (requireComplete && missing) {
       document.querySelectorAll('.required-message').forEach(el => el.remove());
       const message = document.createElement('div');
       message.className = 'required-message';
@@ -1188,20 +1188,28 @@
       queueValue(state.date, id, ref.item.label, val);
     });
     const previousText = saveBtn.textContent;
+    pageSaveInProgress = true;
+    prevBtn.disabled = nextBtn.disabled = true;
+    bottomNav.inert = true;
     saveBtn.disabled = true;
     saveBtn.textContent = '저장 중…';
     try {
       await flushPending();
-      if (currentPage < totalPages) showPage(currentPage + 1);
-      else showPage(1);
+      showPage(targetPage);
     } catch {
       saveBtn.textContent = '저장 실패 · 다시 눌러 주세요';
       return;
     } finally {
+      pageSaveInProgress = false;
+      prevBtn.disabled = nextBtn.disabled = false;
+      bottomNav.inert = false;
       saveBtn.disabled = false;
       if (saveBtn.textContent === '저장 중…') saveBtn.textContent = previousText;
     }
-  });
+  }
+  prevBtn.addEventListener('click', () => saveAndNavigate(currentPage - 1, false));
+  nextBtn.addEventListener('click', () => saveAndNavigate(currentPage + 1, true));
+  saveBtn.addEventListener('click', () => saveAndNavigate(currentPage < totalPages ? currentPage + 1 : 1, true));
 
   showPage(1);
   syncTodayFromServer();
