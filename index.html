@@ -878,7 +878,19 @@
     else closeQuantityKeypad();
   }
   document.getElementById('keypadNext').addEventListener('click', () => {
-    if (activeQuantityInput) advanceFromItem(activeQuantityInput.closest('.item'));
+    if (!activeQuantityInput) return;
+    const row = activeQuantityInput.closest('.item');
+    if (activeQuantityInput.value.trim() === '') {
+      document.querySelectorAll('.required-message').forEach(el => el.remove());
+      const message = document.createElement('div');
+      message.className = 'required-message';
+      message.setAttribute('role', 'alert');
+      message.textContent = '수량을 입력해 주세요. 없으면 0을 입력해 주세요.';
+      row.querySelector('.item-body').appendChild(message);
+      openQuantityKeypad(activeQuantityInput);
+      return;
+    }
+    advanceFromItem(row);
   });
 
   DATA.forEach((items, pageIdx) => {
