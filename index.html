@@ -561,10 +561,14 @@
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: var(--paper); color: var(--ink); font-family: inherit; }
+  .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
+  #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
+  .admin-sticky-header { position:sticky; top:0; z-index:10; background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding:12px 0 28px; margin-bottom:-12px; }
+  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-bottom:28px; margin-bottom:-12px; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
-  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; }
+  .target-edit-page.order-editing .target-edit-row { touch-action: none; cursor: grab; user-select: none; background:var(--bg); border:1px solid var(--line); border-radius:10px; margin:8px 0; padding:10px 12px; }
   .target-edit-row.dragging { opacity: .2; }
   .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: var(--paper); border-radius: 10px; box-shadow: 0 8px 24px #0002; opacity: .96; will-change: transform; }
   .add-type-row { display: flex; gap: 8px; }
@@ -583,7 +587,7 @@
   #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
   .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
   .target-edit-page.order-editing input { pointer-events: none; opacity: 1; -webkit-text-fill-color: var(--accent); }
-  .target-edit-row input { width: 80px; font-family: inherit; font-size: 16px; font-weight: 700; text-align: center; padding: 8px; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: transparent; }
+  .target-edit-row input { width: 100%; justify-self:end; font-family: inherit; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: transparent; }
   .target-edit-row small { color: var(--ink-sub); }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -673,11 +677,11 @@
     </form>
   </div>
 
-<div id="addItemDialog" hidden><form id="addItemForm"><div style="font-weight:700">품목 추가</div>
+<div id="addItemDialog" hidden><form id="addItemForm"><div class="add-item-heading"><button type="button" class="page-btn" id="addItemBack" aria-label="이전으로"></button><span>품목 추가</span></div>
 <label>품목명 (필수)<input id="newItemLabel" type="text" maxlength="60" autocomplete="off" /></label>
 <div class="add-type-row"><button type="button" class="admin-tab active" id="newItemCountType">기준 수량</button><button type="button" class="admin-tab" id="newItemSegmentType">1/3</button></div>
 <div id="newItemCountFields"><label for="newItemQty">기준 수량 (필수)</label><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><label>이 수량 이하일시 발주 (선택)<input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" /></label></div>
-<p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button><button type="button" class="admin-tab" id="cancelAddItem">취소</button></div></form></div>
+<p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button></div></form></div>
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
 </div>
@@ -974,7 +978,7 @@
     requestAnimationFrame(() => {
       if (currentScrollItem !== row || !row.isConnected) return;
       inputScrollSpace.style.height = '0px';
-      const firstRow = row.closest('.section').querySelector('.item');
+      const firstRow = row.closest('.section, .target-edit-page').querySelector('.item, .target-edit-row');
       const firstItemTop = firstRow.getBoundingClientRect().top + window.scrollY;
       const rowTop = row.getBoundingClientRect().top + window.scrollY;
       const targetTop = Math.max(0, rowTop - firstItemTop);
@@ -1394,6 +1398,15 @@
   const adminBackBtn = document.getElementById('adminBackBtn');
   const adminSummaryEl = document.getElementById('adminSummary');
   const adminDateSelect = document.getElementById('adminDateSelect');
+  const adminStickyHeader=document.createElement('div');
+  adminStickyHeader.className='admin-sticky-header';
+  adminView.prepend(adminStickyHeader);
+  adminStickyHeader.append(adminView.querySelector('.admin-view-header'), document.getElementById('adminTabs'), adminDateSelect);
+  function updateAdminHeaderOffset() {
+    adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height-24)}px`);
+  }
+  new ResizeObserver(updateAdminHeaderOffset).observe(adminStickyHeader);
+
 
   function openAdminLogin() {
     closeQuantityKeypad();
@@ -1526,7 +1539,9 @@
     targetPageDots.appendChild(dot);
   });
   function showTargetPage(page) {
+    currentScrollItem = null; inputScrollSpace.style.height = '0px';
     targetPage = Math.max(1, Math.min(DATA.length, page));
+    updateAdminHeaderOffset();
     targetKeypad.hidden = true;
     activeTargetInput = null;
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(section => { section.hidden = Number(section.dataset.page) !== targetPage; });
@@ -1555,7 +1570,7 @@
     input.closest('.target-edit-row').after(targetKeypad);
     targetKeypad.hidden = false;
     input.focus({preventScroll:true});
-    input.scrollIntoView({block:'nearest'});
+    scrollToInputItem(input.closest('.target-edit-row'));
   }
   targetKeypad.addEventListener('pointerdown', event => event.preventDefault());
   targetKeypad.addEventListener('click', event => {
@@ -1702,6 +1717,7 @@
     orderChanged = false;
   }
   function closeTargetEditor() {
+    currentScrollItem=null;inputScrollSpace.style.height='0px';
     applyOrderToChecklist();
     document.getElementById('addItemDialog').hidden = true;
     targetEditor.hidden = true;
@@ -1841,10 +1857,11 @@
     adminSummaryEl.hidden = true;
     addItemDialog.hidden = false;
     window.scrollTo({top:0});
-    const nameInput = document.getElementById('newItemLabel');
-    nameInput.focus({preventScroll:true});
+    document.activeElement?.blur();
+    inputScrollSpace.style.height = '0px'; currentScrollItem = null;
   }
-  document.getElementById('cancelAddItem').addEventListener('click', () => {
+  document.getElementById('addItemBack').innerHTML = document.getElementById('prevBtn').innerHTML;
+  document.getElementById('addItemBack').addEventListener('click', () => {
     addItemDialog.hidden = true; targetEditor.hidden = false;
   });
   document.getElementById('addItemForm').addEventListener('submit', async event => {
