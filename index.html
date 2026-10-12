@@ -584,7 +584,11 @@
   #adminView:has(#targetEditor.order-mode:not([hidden])) #editModeBack { display:flex; }
   #addItemBack svg, #editModeBack svg { width:18px; height:18px; }
   .add-item-heading { display:none !important; }
-  #summaryExportBtn { display:block; width:100%; height:56px; margin:20px 0; border:0; border-radius:16px; background:var(--accent); color:#fff; font:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #summaryExportBtn { display:flex; align-items:center; justify-content:center; width:100%; height:44px; margin:20px 0; border:0; border-radius:16px; background:var(--accent); color:#fff; font:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #summaryExportBtn[hidden] { display:none; }
+  .admin-date-select { background:#fff; color:#000; border:0; box-shadow:none; }
+  .admin-view-header #adminBackBtn svg, #adminMenuToggle svg { stroke-width:3; }
+  #saveTargetsBtn, #orderDoneBtn { background:var(--accent) !important; color:#fff !important; }
   #summaryExportBtn:disabled { opacity:.5; }
   #adminSummary[hidden] + #summaryExportBtn { display:none; }
   .target-page-label { margin-right:auto; font-size:14px; font-weight:700; color:var(--accent); }
@@ -596,7 +600,8 @@
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
   .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:12px 4px 0; margin-bottom:0; }
   .admin-sticky-header::after { content:""; position:absolute; top:100%; left:0; right:0; height:24px; background:linear-gradient(to bottom,var(--bg),transparent); pointer-events:none; }
-  #targetPageNav { position:sticky; top:var(--admin-header-offset,72px); z-index:9; background:var(--bg); margin:0; padding:4px 0 8px; }
+  #targetPageNav { display:none; position:static; background:var(--bg); margin:0; padding:4px 0 8px; }
+  .admin-view:has(#targetEditor:not([hidden])) #targetPageNav { display:flex; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: transparent; border-radius: 0; padding: 8px 22px 16px; }
@@ -739,7 +744,7 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div id="adminSummary"></div>
-    <button type="button" id="summaryExportBtn">저장</button>
+    <button type="button" id="summaryExportBtn" aria-label="목록 이미지 다운로드" title="이미지 다운로드" hidden></button>
     <div id="orderDoneBar" hidden><button type="button" id="orderDeleteBtn" hidden>삭제</button><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
 
@@ -1488,7 +1493,7 @@
   adminView.prepend(adminStickyHeader);
   const adminMenu=document.getElementById('adminTabs');
   adminView.querySelector('.admin-view-header').prepend(adminMenu);
-  adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect);
+  adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect, document.getElementById('targetPageNav'));
   function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
   document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
   function updateAdminHeaderOffset() {
@@ -2136,6 +2141,7 @@
   const adminTabBtns = document.querySelectorAll('.admin-tab[data-tab]');
 
   const summaryExportBtn=document.getElementById('summaryExportBtn');
+  const downloadIcon='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>';
   summaryExportBtn.addEventListener('click',async()=>{
     if(adminSummaryEl.querySelector('.admin-loading'))return;
     summaryExportBtn.disabled=true;
@@ -2181,7 +2187,7 @@
       if(!blob)throw new Error('이미지 생성 실패');
       const downloadBlob=new Blob([blob],{type:'application/octet-stream'});
       const url=URL.createObjectURL(downloadBlob);const link=document.createElement('a');link.href=url;link.download=`MGC_${adminTab==='reorder'?'추가발주':'재고현황'}_${adminDateSelect.value}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-    } catch {summaryExportBtn.textContent='다시 눌러 저장해 주세요';}
+    } catch {summaryExportBtn.title='다운로드 실패 · 다시 눌러 주세요';}
     finally {summaryExportBtn.disabled=false;}
   });
 
@@ -2189,7 +2195,8 @@
     if (adminTab === 'reorder') buildReorderSummary(lastValuesMap);
     else buildAdminSummary(lastValuesMap);
     summaryExportBtn.disabled=false;
-    summaryExportBtn.textContent='저장';
+    summaryExportBtn.innerHTML=downloadIcon;
+    summaryExportBtn.hidden=!DATA.flat().some(item=>lastValuesMap[item.label]!==undefined && lastValuesMap[item.label]!==null && String(lastValuesMap[item.label]).trim()!=='');
   }
 
   adminTabBtns.forEach((btn) => {
@@ -2204,6 +2211,7 @@
 
   async function loadAdminDate(date) {
     summaryExportBtn.disabled=true;
+    summaryExportBtn.hidden=true;
     adminSummaryEl.innerHTML = '<div class="admin-loading"><div class="admin-spinner"></div></div>';
     const remote = await fetchDateValues(date);
     lastValuesMap = { ...(remote || {}) };
@@ -2236,8 +2244,9 @@
     loadAdminDate(state.date);
 
     const dates = await fetchDateList();
-    if (dates.length) {
-      adminDateSelect.innerHTML = dates
+    {
+      const availableDates=[...new Set([state.date,...dates])].sort().reverse();
+      adminDateSelect.innerHTML = availableDates
         .map((d) => `<option value="${d}">${d}</option>`)
         .join('');
       adminDateSelect.value = state.date;
