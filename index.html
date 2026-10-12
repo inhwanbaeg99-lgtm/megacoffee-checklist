@@ -748,13 +748,39 @@
     return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
   }
 
-  function pushValue(date, itemId, label, value) {
-    fetchWithTimeout(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ date, itemId, label, value }),
-    }).catch(() => {});
+  const PENDING_KEY = 'megacoffee-pending-v1';
+  let pendingValues = {};
+  try { pendingValues = JSON.parse(localStorage.getItem(PENDING_KEY)) || {}; } catch {}
+  let savingPromise = null;
+  let saveTimer = null;
+  function persistPending() { localStorage.setItem(PENDING_KEY, JSON.stringify(pendingValues)); }
+  function queueValue(date, itemId, label, value) {
+    pendingValues[`${date}:${itemId}`] = { date, itemId, label, value };
+    persistPending();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => flushPending().catch(() => {}), 800);
   }
+  async function flushPending() {
+    if (savingPromise) return savingPromise;
+    savingPromise = (async () => {
+      while (Object.keys(pendingValues).length) {
+        const key = Object.keys(pendingValues)[0];
+        const entry = pendingValues[key];
+        const res = await fetchWithTimeout(SCRIPT_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(entry),
+        });
+        if (!res.ok) throw new Error('서버 저장 실패');
+        const result = await res.json();
+        if (!result.ok) throw new Error('서버 저장 확인 실패');
+        if (pendingValues[key] === entry) delete pendingValues[key];
+        persistPending();
+      }
+    })();
+    try { await savingPromise; } finally { savingPromise = null; }
+  }
+  window.addEventListener('online', () => flushPending().catch(() => {}));
+  setInterval(() => { if (Object.keys(pendingValues).length) flushPending().catch(() => {}); }, 30000);
 
   async function fetchDateValues(date) {
     try {
@@ -988,6 +1014,7 @@
           btn.addEventListener('click', () => {
             const val = btn.dataset.val;
             state.values[id] = val;
+            queueValue(state.date, id, item.label, val);
             selectSeg(val);
             saveState();
             updateProgress();
@@ -1008,6 +1035,7 @@
           const digitsOnly = input.value.replace(/[^0-9]/g, '');
           if (digitsOnly !== input.value) input.value = digitsOnly;
           state.values[id] = input.value;
+          queueValue(state.date, id, item.label, input.value);
           if (activeQuantityInput === input) updateQuantityClearButton();
           row.classList.toggle('filled', input.value.trim() !== '');
           saveState();
@@ -1060,9 +1088,14 @@
   function syncTodayFromServer() {
     fetchDateValues(state.date).then((remote) => {
       if (!remote) return;
+      Object.entries(state.values).forEach(([id, value]) => {
+        if (!(id in remote) && value !== '' && itemRefs[id]) {
+          queueValue(state.date, id, itemRefs[id].item.label, value);
+        }
+      });
       let changed = false;
       Object.keys(remote).forEach((id) => {
-        if (state.values[id] !== String(remote[id])) {
+        if (state.values[id] === undefined && !pendingValues[`${state.date}:${id}`]) {
           applyRemoteValue(id, remote[id]);
           changed = true;
         }
@@ -1130,7 +1163,7 @@
 
   prevBtn.addEventListener('click', () => showPage(currentPage - 1));
   nextBtn.addEventListener('click', () => showPage(currentPage + 1));
-  saveBtn.addEventListener('click', () => {
+  saveBtn.addEventListener('click', async () => {
     const rows = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .item`)];
     const missing = rows.find(row => {
       const value = state.values[row.dataset.id];
@@ -1152,13 +1185,22 @@
       if (!ref) return;
       const val = state.values[id];
       if (val === undefined || val === '') return;
-      pushValue(state.date, id, ref.item.label, val);
+      queueValue(state.date, id, ref.item.label, val);
     });
-    if (currentPage < totalPages) {
-      showPage(currentPage + 1);
+    const previousText = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = '저장 중…';
+    try {
+      await flushPending();
+      if (currentPage < totalPages) showPage(currentPage + 1);
+      else showPage(1);
+    } catch {
+      saveBtn.textContent = '저장 실패 · 다시 눌러 주세요';
       return;
+    } finally {
+      saveBtn.disabled = false;
+      if (saveBtn.textContent === '저장 중…') saveBtn.textContent = previousText;
     }
-    showPage(1);
   });
 
   showPage(1);
@@ -1338,8 +1380,19 @@
   async function loadAdminDate(date) {
     adminSummaryEl.innerHTML = '<div class="admin-loading"><div class="admin-spinner"></div></div>';
     const remote = await fetchDateValues(date);
-    lastValuesMap = remote || (date === state.date ? state.values : {});
+    lastValuesMap = { ...(remote || {}) };
+    Object.values(pendingValues).filter(entry => entry.date === date).forEach(entry => { lastValuesMap[entry.itemId] = entry.value; });
+    if (date === state.date) {
+      Object.entries(state.values).forEach(([id, value]) => { if (!(id in lastValuesMap)) lastValuesMap[id] = value; });
+    }
     renderAdminTab();
+    if (Object.values(pendingValues).some(entry => entry.date === date)) {
+      const notice = document.createElement('div');
+      notice.className = 'required-message';
+      notice.setAttribute('role', 'status');
+      notice.textContent = '서버 저장 대기 중인 입력이 있습니다. 연결되면 자동으로 재시도합니다.';
+      adminSummaryEl.prepend(notice);
+    }
   }
 
   async function enterAdminView() {
