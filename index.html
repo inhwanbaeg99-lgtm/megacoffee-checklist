@@ -1166,7 +1166,8 @@
     const dot = document.createElement('button');
     dot.className = 'page-dot';
     dot.setAttribute('aria-label', `${i} 페이지로 이동`);
-    dot.addEventListener('click', () => showPage(i));
+    dot.disabled = true;
+    dot.style.cursor = 'default';
     pageDotsEl.appendChild(dot);
   }
   const dotEls = pageDotsEl.querySelectorAll('.page-dot');
