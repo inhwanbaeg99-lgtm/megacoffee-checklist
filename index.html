@@ -576,6 +576,7 @@
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
   .admin-sticky-header { position:sticky; top:0; z-index:10; background:var(--bg); padding:24px 4px 0; margin-bottom:0; }
+  .admin-sticky-header::after { content:""; position:absolute; top:100%; left:0; right:0; height:24px; background:linear-gradient(to bottom,var(--bg),transparent); pointer-events:none; }
   #targetPageNav { position:static; background:transparent; margin:12px 0 16px; padding:0; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
@@ -585,6 +586,7 @@
   .target-edit-page.order-editing .target-edit-row.selected { background:color-mix(in srgb,var(--bg) 92%,var(--ink) 8%); }
   .target-item-name { position:relative; }
   .target-select { position:absolute; left:0; top:50%; margin-top:-12px; }
+  .order-mode, .order-mode * { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
   .target-edit-row.dragging { opacity: .2; }
   .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: color-mix(in srgb, var(--bg) 92%, var(--ink) 8%); border-radius: 0; box-shadow: none; opacity: .98; will-change: transform; }
   .add-type-row { display: flex; gap: 8px; }
@@ -602,7 +604,7 @@
   .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
   #targetEditorStatus { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
   .target-edit-row { display: grid; grid-template-columns: minmax(0,1fr) 90px; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
-  .target-edit-page.order-editing input { pointer-events: none; opacity: 1; -webkit-text-fill-color: var(--accent); }
+  .target-edit-page.order-editing input { pointer-events: none; opacity: 1; -webkit-text-fill-color:#000; }
   .target-edit-row input { width: 1ch; min-width:10px; max-width:90px; justify-self:end; font-family: inherit; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0; border: none; outline: none; box-shadow: none; border-radius: 10px; color: var(--accent); background: transparent; }
   .target-edit-page.order-editing .target-page-add { display:none; }
   .target-edit-page.order-editing .target-edit-row input,
@@ -618,7 +620,8 @@
   #orderDoneBtn, #orderDeleteBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
-  .target-edit-row input { border-bottom:1px solid var(--line); border-radius:0; }
+  .target-edit-row input { color:#000; border-bottom:0; border-radius:0; }
+  .target-edit-row input.active-target { color:var(--accent); }
   #adminTabs { margin-bottom:14px; }
   .admin-view:has(#targetEditor:not([hidden])) #adminTabs { margin-bottom:4px; }
   body.inventory-target-view { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
@@ -727,7 +730,7 @@
     </form>
   </div>
 
-<div id="addItemDialog" hidden><form id="addItemForm"><div class="add-item-heading"><button type="button" class="page-btn" id="addItemBack" aria-label="이전으로"></button><span>품목 추가</span></div>
+<div id="addItemDialog" hidden><form id="addItemForm"><div class="add-item-heading"><button type="button" class="page-btn" id="addItemBack" aria-label="이전으로"></button></div>
 <input id="newItemLabel" type="text" maxlength="60" autocomplete="off" placeholder="품목명 (필수)" aria-label="품목명 (필수)" />
 <div class="add-type-row"><button type="button" class="admin-tab active" id="newItemCountType">기준 수량</button><button type="button" class="admin-tab" id="newItemSegmentType">1/3</button></div>
 <div id="newItemCountFields"><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량 (필수)" placeholder="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="이 수량 이하일시 발주 (선택)" aria-label="이 수량 이하일시 발주 (선택)" /></div>
@@ -1632,7 +1635,7 @@
       section.querySelectorAll('input').forEach(input=>{input.disabled=editing;});
       section.querySelector('.target-order-edit').textContent='편집';
     });
-    targetKeypad.hidden=true;activeTargetInput=null;
+    targetKeypad.hidden=true;activeTargetInput=null;targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
     currentScrollItem=null;inputScrollSpace.style.height='0px';
     updateAdminHeaderOffset();
     if(!editing){applyOrderToChecklist();flushPending().catch(()=>{});}
@@ -1654,6 +1657,7 @@
     targetPage = Math.max(1, Math.min(DATA.length, page));
     updateAdminHeaderOffset();
     targetKeypad.hidden = true;
+    targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
     activeTargetInput = null;
     targetEditorFields.querySelectorAll('.target-edit-page').forEach(section => { section.hidden = Number(section.dataset.page) !== targetPage; });
     [...targetPageDots.children].forEach((dot, index) => dot.classList.toggle('active', index+1 === targetPage));
@@ -1674,6 +1678,8 @@
     targetKeypad.querySelector('.keypad-grid').appendChild(button);
   }
   function openTargetKeypad(input) {
+    targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
+    input.classList.add('active-target');
     const page = Number(input.closest('.target-edit-page').dataset.page);
     if (page !== targetPage) showTargetPage(page);
     activeTargetInput = input;
@@ -1817,7 +1823,7 @@
     pointer.timer=setTimeout(()=>{
       if(pendingDrag!==pointer || !row.isConnected || !section.classList.contains('order-editing')) return;
       pendingDrag=null;
-      targetKeypad.hidden=true;activeTargetInput=null;
+      targetKeypad.hidden=true;activeTargetInput=null;targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
       const rect=row.getBoundingClientRect();
       const preview=row.cloneNode(true);preview.classList.add('drag-preview');
       preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;padding:10px 22px;box-sizing:border-box;`;
@@ -1857,6 +1863,7 @@
     document.getElementById('addItemDialog').hidden = true;
     targetEditor.hidden = true;
     targetKeypad.hidden = true;
+    targetEditorFields.querySelectorAll('.active-target').forEach(el=>el.classList.remove('active-target'));
     activeTargetInput = null;
     adminSummaryEl.hidden = false;
     document.getElementById('adminDateSelect').hidden = false;
