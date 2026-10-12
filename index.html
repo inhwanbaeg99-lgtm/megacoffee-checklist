@@ -555,6 +555,7 @@
   .quantity-keypad[hidden] { display: none; }
   .quantity-keypad { width: 100%; background: transparent; color: var(--ink); padding: 12px 0 20px; }
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
+  .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
@@ -1013,6 +1014,7 @@
   const progressFillEl = document.getElementById('progressFill');
 
   function updateProgress() {
+    document.querySelectorAll('.item.filled .required-message').forEach(el => el.remove());
     const pageItems = document.querySelectorAll(
       `.section[data-page="${currentPage}"] .item`,
     );
@@ -1070,6 +1072,21 @@
   prevBtn.addEventListener('click', () => showPage(currentPage - 1));
   nextBtn.addEventListener('click', () => showPage(currentPage + 1));
   saveBtn.addEventListener('click', () => {
+    const rows = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .item`)];
+    const missing = rows.find(row => {
+      const value = state.values[row.dataset.id];
+      return value === undefined || value === null || String(value).trim() === '';
+    });
+    if (missing) {
+      document.querySelectorAll('.required-message').forEach(el => el.remove());
+      const message = document.createElement('div');
+      message.className = 'required-message';
+      message.setAttribute('role', 'alert');
+      message.textContent = missing.querySelector('.qty-input') ? '수량을 입력해 주세요. 없으면 0을 입력해 주세요.' : '수량을 선택해 주세요.';
+      missing.querySelector('.item-body').appendChild(message);
+      activateItem(missing);
+      return;
+    }
     saveState();
     Object.keys(state.values).forEach((id) => {
       const ref = itemRefs[id];
