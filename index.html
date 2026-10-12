@@ -571,7 +571,10 @@
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
   #addItemBack { width:38px; height:38px; }
   #addItemBack svg { width:20px; height:20px; }
-  .target-page-label { margin-right:auto; font-size:14px; font-weight:700; color:var(--ink-sub); }
+  #summaryExportBtn { display:block; width:100%; height:56px; margin:20px 0; border:0; border-radius:16px; background:var(--accent); color:#fff; font:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #summaryExportBtn:disabled { opacity:.5; }
+  #adminSummary[hidden] + #summaryExportBtn { display:none; }
+  .target-page-label { margin-right:auto; font-size:14px; font-weight:700; color:var(--accent); }
   #addItemDialog .add-type-row button:not(.active) { background:var(--accent-soft); color:var(--accent); }
   #confirmAddItem { background:var(--accent) !important; color:#fff !important; }
   .target-add-btn { border: 0; background: transparent; color: var(--accent); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -722,6 +725,7 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div id="adminSummary"></div>
+    <button type="button" id="summaryExportBtn">저장</button>
     <div id="orderDoneBar" hidden><button type="button" id="orderDeleteBtn" hidden>삭제</button><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
 
@@ -2108,9 +2112,60 @@
   let lastValuesMap = {};
   const adminTabBtns = document.querySelectorAll('.admin-tab[data-tab]');
 
+  const summaryExportBtn=document.getElementById('summaryExportBtn');
+  summaryExportBtn.addEventListener('click',async()=>{
+    if(adminSummaryEl.querySelector('.admin-loading'))return;
+    summaryExportBtn.disabled=true;
+    try {
+      await document.fonts.ready;
+      const canvas=document.createElement('canvas');canvas.width=900;
+      const context=canvas.getContext('2d');
+      const entries=[...adminSummaryEl.children].filter(el=>el.matches('.admin-page-label,.admin-row,.admin-empty,.required-message'));
+      function wrapText(text,maxWidth,font) {
+        context.font=font;const lines=[];let line='';
+        for(const character of text){if(line && context.measureText(line+character).width>maxWidth){lines.push(line);line=character;}else line+=character;}
+        if(line)lines.push(line);return lines;
+      }
+      const blocks=entries.map(el=>{
+        if(el.classList.contains('admin-row')){
+          const value=el.querySelector('.a-value').textContent;
+          context.font='700 24px sans-serif';
+          const valueWidth=Math.min(300,context.measureText(value).width+16);
+          const lines=wrapText(el.querySelector('.a-label').textContent,730-valueWidth,'600 24px sans-serif');
+          return {kind:'row',lines,value,color:el.querySelector('.a-under')?'#e0483e':el.querySelector('.a-empty')?'#999':'#201d1a',height:Math.max(60,lines.length*32+20)};
+        }
+        const lines=wrapText(el.textContent,780,'500 22px sans-serif');
+        return {kind:el.classList.contains('admin-page-label')?'page':'note',lines,height:lines.length*30+24};
+      });
+      canvas.height=220+blocks.reduce((sum,block)=>sum+block.height,0)+60;
+      context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+      context.fillStyle='#201d1a';context.font='800 30px sans-serif';context.fillText('MGC · 춘천온의파크점',60,65);
+      context.font='700 28px sans-serif';context.fillText(adminTab==='reorder'?'추가 발주':'재고 현황',60,115);
+      context.fillStyle='#7c766d';context.font='400 22px sans-serif';context.fillText(adminDateSelect.value,60,154);
+      context.strokeStyle='#e1e5e9';context.beginPath();context.moveTo(60,180);context.lineTo(840,180);context.stroke();
+      let y=200;
+      for(const block of blocks){
+        context.font=block.kind==='row'?'600 24px sans-serif':block.kind==='page'?'700 22px sans-serif':'400 22px sans-serif';
+        context.fillStyle=block.kind==='page'?'#3182f6':'#201d1a';
+        block.lines.forEach((line,index)=>context.fillText(line,60,y+30+index*32));
+        if(block.kind==='row'){
+          context.textAlign='right';context.fillStyle=block.color;context.font='700 24px sans-serif';context.fillText(block.value,840,y+30);context.textAlign='left';
+          context.strokeStyle='#e1e5e9';context.beginPath();context.moveTo(60,y+block.height-5);context.lineTo(840,y+block.height-5);context.stroke();
+        }
+        y+=block.height;
+      }
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      if(!blob)throw new Error('이미지 생성 실패');
+      const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`MGC_${adminTab==='reorder'?'추가발주':'재고현황'}_${adminDateSelect.value}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    } catch {summaryExportBtn.textContent='다시 눌러 저장해 주세요';}
+    finally {summaryExportBtn.disabled=false;}
+  });
+
   function renderAdminTab() {
     if (adminTab === 'reorder') buildReorderSummary(lastValuesMap);
     else buildAdminSummary(lastValuesMap);
+    summaryExportBtn.disabled=false;
+    summaryExportBtn.textContent='저장';
   }
 
   adminTabBtns.forEach((btn) => {
@@ -2123,6 +2178,7 @@
   });
 
   async function loadAdminDate(date) {
+    summaryExportBtn.disabled=true;
     adminSummaryEl.innerHTML = '<div class="admin-loading"><div class="admin-spinner"></div></div>';
     const remote = await fetchDateValues(date);
     lastValuesMap = { ...(remote || {}) };
