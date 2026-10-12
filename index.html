@@ -561,6 +561,7 @@
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
   .keypad-grid button { color: #777; }
   .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"] { display: flex; align-items: center; justify-content: center; }
+  .keypad-grid button:disabled { opacity: 0.35; cursor: default; }
   .keypad-grid svg { stroke: currentColor; }
   @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
   .keypad-grid button:active { color: #000 !important; }
@@ -816,6 +817,15 @@
   let currentScrollItem = null;
   let activeQuantityInput = null;
   let replaceQuantity = false;
+  const quantityClearButton = quantityKeypad.querySelector('[data-key="clear"]');
+  const quantityDeleteIcon = quantityClearButton.innerHTML;
+  function updateQuantityClearButton() {
+    const hasValue = !!activeQuantityInput?.value.trim();
+    quantityClearButton.innerHTML = hasValue ? quantityDeleteIcon : '←';
+    quantityClearButton.setAttribute('aria-label', hasValue ? '입력 지우기' : '이전 페이지');
+    quantityClearButton.disabled = !hasValue && currentPage === 1;
+  }
+
   function closeQuantityKeypad() {
     quantityKeypad.hidden = true;
     document.body.classList.remove('keypad-open');
@@ -844,6 +854,7 @@
   function openQuantityKeypad(input) {
     activeQuantityInput = input;
     replaceQuantity = true;
+    updateQuantityClearButton();
     input.closest('.item').after(quantityKeypad);
     quantityKeypad.hidden = false;
     document.body.classList.add('keypad-open');
@@ -855,6 +866,10 @@
     const key = e.target.closest('[data-key]')?.dataset.key;
     if (!key || !activeQuantityInput) return;
     const input = activeQuantityInput;
+    if (key === 'clear' && input.value.trim() === '') {
+      if (currentPage > 1) showPage(currentPage - 1);
+      return;
+    }
     if (key === 'clear') input.value = '';
     else if (key === 'backspace') input.value = input.value.slice(0, -1);
     else input.value = ((replaceQuantity ? '' : input.value) + key).replace(/^0+(?=\d)/, '').slice(0, 6);
@@ -987,6 +1002,7 @@
           const digitsOnly = input.value.replace(/[^0-9]/g, '');
           if (digitsOnly !== input.value) input.value = digitsOnly;
           state.values[id] = input.value;
+          if (activeQuantityInput === input) updateQuantityClearButton();
           row.classList.toggle('filled', input.value.trim() !== '');
           saveState();
           updateProgress();
@@ -1028,6 +1044,7 @@
     state.values[id] = strVal;
     if (ref.input) {
       ref.input.value = strVal;
+      if (activeQuantityInput === ref.input) updateQuantityClearButton();
       ref.row.classList.toggle('filled', strVal.trim() !== '');
     } else if (ref.selectSeg) {
       ref.selectSeg(strVal);
