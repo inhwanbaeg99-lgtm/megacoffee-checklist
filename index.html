@@ -557,10 +557,10 @@
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   html, body, body * { touch-action: manipulation; scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-  #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
+  #targetEditorFields { margin-top: 6px; margin-bottom: 16px; }
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
   .target-order-edit { font-size:16px !important; }
-  .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:12px -22px -16px; padding:14px 16px; border:0; border-top:1px solid var(--line); border-radius:0 0 16px 16px; background:var(--paper); color:var(--ink-sub); cursor:pointer; }
+  .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:12px -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0 0 16px 16px; background:var(--paper); color:var(--ink-sub); cursor:pointer; }
   .target-delete { display:none; width:26px; height:26px; border:0; border-radius:50%; background:transparent; color:#e0483e; font:inherit; font-size:22px; padding:0; flex-shrink:0; touch-action:manipulation; }
   .target-edit-page.order-editing .target-delete { display:inline-flex; align-items:center; justify-content:center; }
   .drag-preview .target-delete { display:inline-flex; align-items:center; justify-content:center; }
@@ -572,8 +572,8 @@
   #addItemDialog { width: 100%; margin-top: 16px; box-sizing: border-box; border: 0; border-radius: 16px; padding: 24px; background: var(--paper); color: var(--ink); font-family: inherit; }
   .add-item-heading { display:flex; align-items:center; gap:10px; font-weight:700; }
   #addItemDialog input:focus { outline:none; border:none; box-shadow:none; }
-  .admin-sticky-header { position:sticky; top:0; z-index:10; background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding:12px 0 28px; margin-bottom:-12px; }
-  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-bottom:28px; margin-bottom:-12px; }
+  .admin-sticky-header { position:sticky; top:0; z-index:10; background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding:8px 0 12px; margin-bottom:-6px; }
+  #targetPageNav { position:sticky; z-index:9; top:var(--admin-header-offset,100px); background:linear-gradient(to bottom,var(--bg) 55%,transparent 100%); padding-top:0; padding-bottom:12px; margin-top:0; margin-bottom:-6px; }
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
@@ -1422,7 +1422,7 @@
   adminView.prepend(adminStickyHeader);
   adminStickyHeader.append(adminView.querySelector('.admin-view-header'), document.getElementById('adminTabs'), adminDateSelect);
   function updateAdminHeaderOffset() {
-    adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height-24)}px`);
+    adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height-8)}px`);
   }
   new ResizeObserver(updateAdminHeaderOffset).observe(adminStickyHeader);
 
