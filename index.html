@@ -1633,7 +1633,8 @@
     const copies=[clone,...clone.querySelectorAll('*')];
     sources.forEach((source,index)=>{
       const style=getComputedStyle(source);
-      copies[index].style.cssText=[...style].map(name=>`${name}:${style.getPropertyValue(name)};`).join('');
+      const properties=['display','visibility','position','top','right','bottom','left','z-index','box-sizing','width','height','min-width','min-height','max-width','max-height','margin','padding','border','border-radius','background','box-shadow','color','font-family','font-size','font-weight','line-height','letter-spacing','text-align','white-space','overflow','opacity','transform','transform-origin','flex','flex-direction','align-items','justify-content','gap','grid-template-columns','grid-template-rows','grid-column','grid-row','appearance','fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','overflow-wrap'];
+      copies[index].style.cssText=properties.map(name=>`${name}:${style.getPropertyValue(name)};`).join('');
       if(source instanceof HTMLInputElement)copies[index].value=source.value;
     });
     const rect=adminView.getBoundingClientRect();
@@ -2132,6 +2133,14 @@
   function returnFromAdd() { addItemDialog.hidden=true;targetEditor.hidden=false;document.getElementById('adminTabs').hidden=false;updateAdminHeaderOffset(); }
   document.getElementById('addItemBack').addEventListener('click', returnFromAdd);
   let returnSwipe=null;
+  function animateSwipeFollow(swipe){
+    if(returnSwipe!==swipe || !swipe.active)return;
+    swipe.shownX += (swipe.dx-swipe.shownX)*.65;
+    if(Math.abs(swipe.dx-swipe.shownX)<.1)swipe.shownX=swipe.dx;
+    swipe.front.style.transform=`translate3d(${swipe.shownX}px,0,0)`;
+    swipe.back.style.transform=`translate3d(${(swipe.shownX-swipe.width)*.25}px,0,0)`;
+    swipe.animationFrame=requestAnimationFrame(()=>animateSwipeFollow(swipe));
+  }
   document.addEventListener('pointerdown',event=>{
     if(event.pointerType!=='touch' || dragState || event.target.closest('input,button,select'))return;
     const frame=!addItemDialog.hidden?addItemDialog:targetEditor.classList.contains('order-mode')?targetEditor:null;
@@ -2153,19 +2162,22 @@
       document.body.append(swipe.back,swipe.front);
       swipe.oldVisibility=adminView.style.visibility;adminView.style.visibility='hidden';
       document.body.style.overflowX='hidden';
+      swipe.shownX=0;
+      swipe.front.style.willChange='transform';swipe.back.style.willChange='transform';
+      swipe.animationFrame=requestAnimationFrame(()=>animateSwipeFollow(swipe));
     }
     event.preventDefault();swipe.dx=Math.max(0,Math.min(swipe.width,dx));
-    swipe.front.style.transform=`translate3d(${swipe.dx}px,0,0)`;
-    swipe.back.style.transform=`translate3d(${(swipe.dx-swipe.width)*.25}px,0,0)`;
+
   },{passive:false});
   document.addEventListener('touchmove',event=>{if(returnSwipe?.active)event.preventDefault();},{passive:false});
   function finishReturnSwipe(event){
     const swipe=returnSwipe;if(!swipe || event.pointerId!==swipe.id)return;
     returnSwipe=null;if(!swipe.active)return;
+    cancelAnimationFrame(swipe.animationFrame);
     const completed=event.type!=='pointercancel' && swipe.dx>Math.min(100,innerWidth*.25);
-    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:200;
-    swipe.front.style.transition=`transform ${duration}ms ease-out`;
-    swipe.back.style.transition=`transform ${duration}ms ease-out`;
+    const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:340;
+    swipe.front.style.transition=`transform ${duration}ms cubic-bezier(.22,1,.36,1)`;
+    swipe.back.style.transition=`transform ${duration}ms cubic-bezier(.22,1,.36,1)`;
     swipe.front.style.transform=completed?`translate3d(${swipe.width}px,0,0)`:'translate3d(0,0,0)';
     swipe.back.style.transform=completed?'translate3d(0,0,0)':`translate3d(${-swipe.width*.25}px,0,0)`;
     setTimeout(()=>{
