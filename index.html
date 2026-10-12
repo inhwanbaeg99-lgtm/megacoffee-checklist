@@ -1623,6 +1623,33 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  let previousAdminPage=null;
+  function captureAdminPage() {
+    const layer=document.createElement('div');
+    layer.className='admin-swipe-layer';
+    layer.style.cssText='position:fixed;inset:0;width:100%;height:100dvh;overflow:hidden;background:var(--bg);pointer-events:none;z-index:1000;';
+    const clone=adminView.cloneNode(true);
+    const sources=[adminView,...adminView.querySelectorAll('*')];
+    const copies=[clone,...clone.querySelectorAll('*')];
+    sources.forEach((source,index)=>{
+      const style=getComputedStyle(source);
+      copies[index].style.cssText=[...style].map(name=>`${name}:${style.getPropertyValue(name)};`).join('');
+      if(source instanceof HTMLInputElement)copies[index].value=source.value;
+    });
+    const rect=adminView.getBoundingClientRect();
+    Object.assign(clone.style,{position:'absolute',left:`${rect.left}px`,top:`${rect.top}px`,width:`${rect.width}px`,maxWidth:'none',margin:'0',transform:'none',visibility:'visible'});
+    layer.appendChild(clone);
+    for(const selector of ['.admin-sticky-header','#orderDoneBar','#targetEditorActions']){
+      const source=adminView.querySelector(selector),copy=clone.querySelector(selector);
+      if(!source||!copy||!source.getBoundingClientRect().height||getComputedStyle(source).display==='none')continue;
+      const box=source.getBoundingClientRect();
+      layer.appendChild(copy);
+      Object.assign(copy.style,{position:'absolute',left:`${box.left}px`,top:`${box.top}px`,width:`${box.width}px`,height:`${box.height}px`,margin:'0',transform:'none'});
+    }
+    layer.querySelectorAll('[id]').forEach(element=>element.removeAttribute('id'));
+    return {layer,scrollY:window.scrollY};
+  }
+
   const targetMeasureCanvas=document.createElement('canvas');
   function sizeTargetInput(input) {
     const style=getComputedStyle(input);
@@ -1655,6 +1682,7 @@
   });
 
   function setOrderEditing(editing) {
+    if(editing && !targetEditor.classList.contains('order-mode'))previousAdminPage=captureAdminPage();
     if (!editing && dragState) endOrderDrag({pointerId:dragState.pointerId});
     cancelPendingDrag();
     if(!editing && targetEditor.classList.contains('order-mode'))restoreDraftOrder();
@@ -2084,6 +2112,7 @@
   document.querySelectorAll('[data-new-unit]').forEach(button=>button.addEventListener('click',()=>selectNewUnit(button.dataset.newUnit)));
   let addingPage = 1;
   function openAddItem(page) {
+    previousAdminPage=captureAdminPage();
     addingPage = page;
     addNumberKeypad.hidden=true;activeAddNumber=null;
     document.getElementById('addItemForm').reset();
@@ -2116,17 +2145,18 @@
       if(Math.abs(dy)>12 && Math.abs(dy)>Math.abs(dx)){returnSwipe=null;return;}
       if(dx<12 || dx<Math.abs(dy)*1.4)return;
       cancelPendingDrag();swipe.active=true;
-      const rect=swipe.frame.getBoundingClientRect();
-      const preview=targetEditor.cloneNode(true);preview.hidden=false;preview.classList.remove('order-mode');
-      preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
-      preview.querySelectorAll('input').forEach(el=>el.disabled=true);
-      preview.querySelectorAll('.order-editing').forEach(el=>el.classList.remove('order-editing'));
-      preview.querySelectorAll('.target-select,.reorder-indicator').forEach(el=>el.remove());
-      preview.classList.add('swipe-return-preview');preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${innerHeight}px;`;
-      document.body.appendChild(preview);swipe.preview=preview;
-      swipe.frame.style.position='relative';swipe.frame.style.zIndex='8';swipe.frame.style.background='var(--bg)';
+      swipe.front=captureAdminPage().layer;
+      swipe.back=previousAdminPage?.layer.cloneNode(true) || captureAdminPage().layer;
+      swipe.width=innerWidth;
+      swipe.front.style.zIndex='1001';swipe.back.style.zIndex='1000';
+      swipe.back.style.transform=`translate3d(${-swipe.width*.25}px,0,0)`;
+      document.body.append(swipe.back,swipe.front);
+      swipe.oldVisibility=adminView.style.visibility;adminView.style.visibility='hidden';
+      document.body.style.overflowX='hidden';
     }
-    event.preventDefault();swipe.dx=Math.max(0,dx);swipe.frame.style.transform=`translate3d(${swipe.dx}px,0,0)`;
+    event.preventDefault();swipe.dx=Math.max(0,Math.min(swipe.width,dx));
+    swipe.front.style.transform=`translate3d(${swipe.dx}px,0,0)`;
+    swipe.back.style.transform=`translate3d(${(swipe.dx-swipe.width)*.25}px,0,0)`;
   },{passive:false});
   document.addEventListener('touchmove',event=>{if(returnSwipe?.active)event.preventDefault();},{passive:false});
   function finishReturnSwipe(event){
@@ -2134,11 +2164,14 @@
     returnSwipe=null;if(!swipe.active)return;
     const completed=event.type!=='pointercancel' && swipe.dx>Math.min(100,innerWidth*.25);
     const duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:200;
-    swipe.frame.style.transition=`transform ${duration}ms ease-out`;
-    swipe.frame.style.transform=completed?`translate3d(${innerWidth}px,0,0)`:'translate3d(0,0,0)';
+    swipe.front.style.transition=`transform ${duration}ms ease-out`;
+    swipe.back.style.transition=`transform ${duration}ms ease-out`;
+    swipe.front.style.transform=completed?`translate3d(${swipe.width}px,0,0)`:'translate3d(0,0,0)';
+    swipe.back.style.transform=completed?'translate3d(0,0,0)':`translate3d(${-swipe.width*.25}px,0,0)`;
     setTimeout(()=>{
-      swipe.preview?.remove();swipe.frame.style.removeProperty('transform');swipe.frame.style.removeProperty('transition');swipe.frame.style.removeProperty('position');swipe.frame.style.removeProperty('z-index');swipe.frame.style.removeProperty('background');
-      if(completed){if(swipe.frame===addItemDialog)returnFromAdd();else setOrderEditing(false);}
+      if(completed){if(swipe.frame===addItemDialog)returnFromAdd();else setOrderEditing(false);window.scrollTo(0,previousAdminPage?.scrollY || 0);}
+      adminView.style.visibility=swipe.oldVisibility;
+      swipe.front.remove();swipe.back.remove();document.body.style.removeProperty('overflow-x');
     },duration);
   }
   document.addEventListener('pointerup',finishReturnSwipe);
