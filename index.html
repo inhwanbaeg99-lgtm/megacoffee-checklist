@@ -561,7 +561,7 @@
   ::-webkit-scrollbar { display: none; width: 0; height: 0; }
   #targetEditorFields { margin-top: 16px; margin-bottom: 16px; }
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 0; }
-  .target-order-edit { font-size:16px !important; }
+  .target-order-edit { font-size:14px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0; background:transparent; color:var(--ink-sub); cursor:pointer; }
   .target-select { display:none; width:24px; height:24px; border:2px solid var(--line); border-radius:50%; background:transparent; color:var(--line); padding:0; flex-shrink:0; touch-action:manipulation; }
   .target-select[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
@@ -2156,7 +2156,8 @@
       }
       const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
       if(!blob)throw new Error('이미지 생성 실패');
-      const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`MGC_${adminTab==='reorder'?'추가발주':'재고현황'}_${adminDateSelect.value}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+      const downloadBlob=new Blob([blob],{type:'application/octet-stream'});
+      const url=URL.createObjectURL(downloadBlob);const link=document.createElement('a');link.href=url;link.download=`MGC_${adminTab==='reorder'?'추가발주':'재고현황'}_${adminDateSelect.value}.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
     } catch {summaryExportBtn.textContent='다시 눌러 저장해 주세요';}
     finally {summaryExportBtn.disabled=false;}
   });
