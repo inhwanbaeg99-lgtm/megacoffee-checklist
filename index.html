@@ -807,9 +807,7 @@
   function openQuantityKeypad(input) {
     activeQuantityInput = input;
     replaceQuantity = true;
-    const section = input.closest('.section');
-    const anchor = [...section.querySelectorAll('.item')].find(row => row.dataset.id === '꿀') || section.querySelector('.item');
-    anchor.after(quantityKeypad);
+    input.closest('.item').after(quantityKeypad);
     quantityKeypad.hidden = false;
     document.body.classList.add('keypad-open');
     input.focus({ preventScroll: true });
