@@ -463,6 +463,7 @@
     margin-bottom: 16px;
     box-sizing: border-box;
   }
+  #adminTabs[hidden] { display:none; }
   .admin-tabs {
     display: flex;
     gap: 6px;
@@ -605,6 +606,11 @@
   .target-edit-page.order-editing .threshold-label,
   .target-edit-page.order-editing .target-edit-row small,
   .drag-preview input, .drag-preview .threshold-label, .drag-preview small { display:none; }
+  .order-mode .target-page-tools, .order-mode #targetEditorActions, .order-mode #targetEditorStatus { display:none; }
+  body.inventory-order-mode { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
+  #orderDoneBar[hidden] { display:none; }
+  #orderDoneBar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
+  #orderDoneBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
   .target-edit-row small { color: var(--ink-sub); }
@@ -687,11 +693,12 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div id="adminSummary"></div>
+    <div id="orderDoneBar" hidden><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
       <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
       <div id="targetEditorFields"></div>
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
-      <div class="admin-tabs"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
+      <div class="admin-tabs" id="targetEditorActions"><button type="submit" class="admin-tab active" id="saveTargetsBtn">저장</button><button type="button" class="admin-tab" id="cancelTargetsBtn">취소</button></div>
       <p id="targetEditorStatus" role="status"></p>
     </form>
   </div>
@@ -1557,6 +1564,25 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  function setOrderEditing(editing) {
+    if (!editing && dragState) endOrderDrag({pointerId:dragState.pointerId});
+    cancelPendingDrag();
+    targetEditor.classList.toggle('order-mode',editing);
+    document.body.classList.toggle('inventory-order-mode',editing);
+    document.getElementById('adminTabs').hidden=editing;
+    document.getElementById('orderDoneBar').hidden=!editing;
+    targetEditorFields.querySelectorAll('.target-edit-page').forEach(section=>{
+      section.classList.toggle('order-editing',editing);
+      section.querySelectorAll('input').forEach(input=>{input.disabled=editing;});
+      section.querySelector('.target-order-edit').textContent='편집';
+    });
+    targetKeypad.hidden=true;activeTargetInput=null;
+    currentScrollItem=null;inputScrollSpace.style.height='0px';
+    updateAdminHeaderOffset();
+    if(!editing){applyOrderToChecklist();flushPending().catch(()=>{});}
+  }
+  document.getElementById('orderDoneBtn').addEventListener('click',()=>setOrderEditing(false));
+
   document.getElementById('targetPrevPage').innerHTML = document.getElementById('prevBtn').innerHTML;
   document.getElementById('targetNextPage').innerHTML = document.getElementById('nextBtn').innerHTML;
   let targetPage = 1;
@@ -1768,6 +1794,7 @@
     orderChanged = false;
   }
   function closeTargetEditor() {
+    setOrderEditing(false);
     currentScrollItem=null;inputScrollSpace.style.height='0px';
     applyOrderToChecklist();
     document.getElementById('addItemDialog').hidden = true;
@@ -1781,6 +1808,7 @@
     adminTabBtns.forEach(button => button.classList.toggle('active', button.dataset.tab === adminTab));
   }
   document.getElementById('editTargetsBtn').addEventListener('click', () => {
+    setOrderEditing(false);
     document.getElementById('addItemDialog').hidden = true;
     adminSummaryEl.hidden = true;
     document.getElementById('adminDateSelect').hidden = true;
@@ -1805,12 +1833,7 @@
       const edit = document.createElement('button');
       edit.type = 'button'; edit.className = 'target-add-btn target-order-edit'; edit.textContent = '편집';
       edit.addEventListener('click', () => {
-        const editing = section.classList.toggle('order-editing');
-        edit.textContent = editing ? '완료' : '편집';
-        section.querySelectorAll('input').forEach(input => { input.disabled = editing; });
-        targetKeypad.hidden = true; activeTargetInput = null;
-        if (!editing) { applyOrderToChecklist(); flushPending().catch(() => {}); }
-        refreshOrderButtons(section);
+        setOrderEditing(true);
       });
       tools.appendChild(edit); section.appendChild(tools);
       items.forEach(item => {
@@ -1858,7 +1881,7 @@
           }
         }
         const dragIcon=document.createElement('span');dragIcon.className='reorder-indicator';dragIcon.setAttribute('aria-hidden','true');
-        dragIcon.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
+        dragIcon.innerHTML='<svg width="20" height="24" viewBox="0 0 20 24" fill="currentColor"><circle cx="7" cy="6" r="1.6"/><circle cx="13" cy="6" r="1.6"/><circle cx="7" cy="12" r="1.6"/><circle cx="13" cy="12" r="1.6"/><circle cx="7" cy="18" r="1.6"/><circle cx="13" cy="18" r="1.6"/></svg>';
         row.appendChild(dragIcon);
         section.appendChild(row);
       });
