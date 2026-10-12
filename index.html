@@ -552,6 +552,17 @@
   .admin-row .a-value.a-over {
     color: var(--accent);
   }
+  .quantity-keypad[hidden] { display: none; }
+  .quantity-keypad { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 520px); background: var(--paper); color: var(--ink); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); z-index: 50; border-top: 1px solid var(--line); box-shadow: 0 -6px 24px #00000012; }
+  .keypad-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; font-weight: 700; }
+  .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
+  .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
+  .quantity-keypad button:active { background: var(--accent-soft); }
+  .keypad-next { width: 100%; height: 42px; margin-top: 8px; background: var(--accent) !important; color: #fff !important; font-weight: 700 !important; }
+  .item.keypad-active { background: var(--accent-soft); border-radius: 10px; }
+  body.keypad-open { padding-bottom: calc(320px + env(safe-area-inset-bottom)); }
+  .qty-input { scroll-margin-bottom: 330px; }
 </style>
 </head>
 <body>
@@ -616,6 +627,11 @@
     <div id="adminSummary"></div>
   </div>
 
+<div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
+  <div class="keypad-header"><span id="keypadLabel"></span><button type="button" id="keypadClose" aria-label="키패드 닫기">닫기</button></div>
+  <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear">지우기</button><button type="button" data-key="0">0</button><button type="button" data-key="backspace" aria-label="한 자리 삭제">←</button></div>
+  <button type="button" class="keypad-next" id="keypadNext">다음 입력</button>
+</div>
 <script>
   const DATA = [
     [
@@ -787,6 +803,45 @@
   let currentPage = 1;
   const itemRefs = {};
 
+  const quantityKeypad = document.getElementById('quantityKeypad');
+  let activeQuantityInput = null;
+  let replaceQuantity = false;
+  function closeQuantityKeypad() {
+    quantityKeypad.hidden = true;
+    document.body.classList.remove('keypad-open');
+    activeQuantityInput?.closest('.item').classList.remove('keypad-active');
+    activeQuantityInput = null;
+  }
+  function openQuantityKeypad(input) {
+    activeQuantityInput?.closest('.item').classList.remove('keypad-active');
+    activeQuantityInput = input;
+    replaceQuantity = true;
+    input.closest('.item').classList.add('keypad-active');
+    document.getElementById('keypadLabel').textContent = input.getAttribute('aria-label');
+    quantityKeypad.hidden = false;
+    document.body.classList.add('keypad-open');
+    input.focus({ preventScroll: true });
+    requestAnimationFrame(() => input.scrollIntoView({ block: 'nearest' }));
+  }
+  quantityKeypad.addEventListener('pointerdown', e => e.preventDefault());
+  quantityKeypad.addEventListener('click', e => {
+    const key = e.target.closest('[data-key]')?.dataset.key;
+    if (!key || !activeQuantityInput) return;
+    const input = activeQuantityInput;
+    if (key === 'clear') input.value = '';
+    else if (key === 'backspace') input.value = input.value.slice(0, -1);
+    else input.value = ((replaceQuantity ? '' : input.value) + key).replace(/^0+(?=\d)/, '').slice(0, 6);
+    replaceQuantity = false;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  document.getElementById('keypadClose').addEventListener('click', closeQuantityKeypad);
+  document.getElementById('keypadNext').addEventListener('click', () => {
+    const inputs = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .qty-input`)];
+    const next = inputs[inputs.indexOf(activeQuantityInput) + 1];
+    if (next) openQuantityKeypad(next);
+    else closeQuantityKeypad();
+  });
+
   DATA.forEach((items, pageIdx) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
@@ -814,7 +869,8 @@
             <div class="qty-wrap">
               <input
                 type="text"
-                inputmode="numeric"
+                inputmode="none"
+                readonly
                 pattern="[0-9]*"
                 autocomplete="off"
                 class="qty-input"
@@ -885,6 +941,15 @@
         });
         input.addEventListener('focus', () => {
           input.placeholder = '';
+          openQuantityKeypad(input);
+        });
+        input.addEventListener('click', () => openQuantityKeypad(input));
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Escape') closeQuantityKeypad();
+          else if (/^[0-9]$/.test(e.key) || e.key === 'Backspace') {
+            e.preventDefault();
+            quantityKeypad.querySelector(`[data-key="${e.key === 'Backspace' ? 'backspace' : e.key}"]`).click();
+          }
         });
         input.addEventListener('blur', () => {
           if (input.value === '') input.placeholder = '0';
@@ -966,6 +1031,7 @@
   const PAGE_KEY = 'megacoffee-checklist-page';
 
   function showPage(n) {
+    closeQuantityKeypad();
     currentPage = Math.min(totalPages, Math.max(1, n));
     sectionEls.forEach((el) => {
       el.style.display = Number(el.dataset.page) === currentPage ? '' : 'none';
@@ -978,6 +1044,8 @@
     updateProgress();
     window.scrollTo({ top: 0 });
     localStorage.setItem(PAGE_KEY, String(currentPage));
+    const firstInput = document.querySelector(`.section[data-page="${currentPage}"] .qty-input`);
+    if (firstInput) openQuantityKeypad(firstInput);
   }
 
   function loadSavedPage() {
@@ -1048,6 +1116,7 @@
   const adminDateSelect = document.getElementById('adminDateSelect');
 
   function openAdminLogin() {
+    closeQuantityKeypad();
     adminPassInput.value = '';
     adminPassInput.classList.remove('shake');
     eyebrowWrap.hidden = true;

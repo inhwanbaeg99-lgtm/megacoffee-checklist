@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mgc-checklist-v1';
+const CACHE_NAME = 'mgc-checklist-v2';
 const SHELL_FILES = [
   './',
   './index.html',
