@@ -463,6 +463,14 @@
     margin-bottom: 16px;
     box-sizing: border-box;
   }
+  .admin-view-header { height:auto; min-height:44px; align-items:flex-start; }
+  .admin-sticky-header #adminTabs { display:flex; flex-direction:column; position:relative; width:180px; margin:0 !important; gap:0; padding:2px 0; background:var(--paper); border-radius:20px; }
+  #adminTabs .admin-tab { flex:none; order:0; width:100%; height:44px; padding:0 44px 0 16px; text-align:left; font-size:16px; background:transparent; color:var(--ink); }
+  #adminTabs .admin-tab.active { order:-1; background:transparent; color:var(--ink); }
+  #adminTabs:not(.expanded) .admin-tab:not(.active) { display:none; }
+  #adminMenuToggle { position:absolute; top:6px; right:7px; width:36px; height:36px; border:0; background:transparent; color:var(--ink); font-size:25px; line-height:1; cursor:pointer; z-index:1; }
+  .admin-view-header #adminBackBtn { margin-left:10px; background:var(--paper); color:var(--ink); }
+  .admin-sticky-header #adminTabs[hidden] { display:none; }
   #adminTabs[hidden] { display:none; }
   .admin-tabs {
     display: flex;
@@ -709,7 +717,6 @@
 
   <div class="admin-view" id="adminView" hidden>
     <div class="admin-view-header">
-      <div class="admin-view-title">MGC · 춘천온의파크점</div>
       <button class="admin-btn" id="adminBackBtn" aria-label="체크리스트로">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -719,9 +726,10 @@
       </button>
     </div>
     <div class="admin-tabs" id="adminTabs">
+      <button type="button" id="adminMenuToggle" aria-label="메뉴 펼치기" aria-expanded="false">+</button>
       <button type="button" class="admin-tab active" data-tab="reorder">추가 발주</button>
       <button type="button" class="admin-tab" data-tab="history">재고 현황</button>
-      <button type="button" class="admin-tab" id="editTargetsBtn" style="margin-left:auto">재고 수정</button>
+      <button type="button" class="admin-tab" id="editTargetsBtn">재고 수정</button>
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div id="adminSummary"></div>
@@ -1471,7 +1479,11 @@
   const adminStickyHeader=document.createElement('div');
   adminStickyHeader.className='admin-sticky-header';
   adminView.prepend(adminStickyHeader);
-  adminStickyHeader.append(adminView.querySelector('.admin-view-header'), document.getElementById('adminTabs'), adminDateSelect);
+  const adminMenu=document.getElementById('adminTabs');
+  adminView.querySelector('.admin-view-header').prepend(adminMenu);
+  adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect);
+  function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').textContent='+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
+  document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').textContent=expanded?'×':'+';document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
   function updateAdminHeaderOffset() {
     adminView.style.setProperty('--admin-header-offset', `${Math.max(0,adminStickyHeader.getBoundingClientRect().height)}px`);
   }
@@ -1879,6 +1891,7 @@
     adminTabBtns.forEach(button => button.classList.toggle('active', button.dataset.tab === adminTab));
   }
   document.getElementById('editTargetsBtn').addEventListener('click', () => {
+    collapseAdminMenu();
     setOrderEditing(false);
     document.body.classList.add('inventory-target-view');
     document.getElementById('addItemDialog').hidden = true;
@@ -2172,6 +2185,7 @@
   adminTabBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       closeTargetEditor();
+      collapseAdminMenu();
       adminTab = btn.dataset.tab;
       adminTabBtns.forEach((b) => b.classList.toggle('active', b === btn));
       renderAdminTab();
@@ -2203,6 +2217,7 @@
     bottomNav.style.display = 'none';
     adminView.hidden = false;
 
+    collapseAdminMenu();
     adminTab = 'reorder';
     adminTabBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === 'reorder'));
 
