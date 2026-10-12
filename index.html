@@ -669,7 +669,7 @@
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
   .keypad-grid button { color: #777; }
-  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"], .keypad-grid button[data-target-key="clear"] { display: flex; align-items: center; justify-content: center; }
+  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"], .keypad-grid button[data-target-key="clear"], .keypad-grid button[data-add-number="clear"] { display: flex; align-items: center; justify-content: center; }
   .keypad-grid button:disabled { opacity: 0.35; cursor: default; }
   .keypad-grid svg { stroke: currentColor; }
   @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
@@ -760,7 +760,8 @@
 <div id="addItemDialog" hidden><form id="addItemForm"><div class="add-item-heading"><button type="button" class="page-btn" id="addItemBack" aria-label="이전으로"></button></div>
 <input id="newItemLabel" type="text" maxlength="60" autocomplete="off" placeholder="품목명 (필수)" aria-label="품목명 (필수)" />
 <div class="add-type-row"><button type="button" class="admin-tab active" id="newItemCountType">기준 수량</button><button type="button" class="admin-tab" id="newItemSegmentType">1/3</button></div>
-<div id="newItemCountFields"><div class="new-item-quantity"><input id="newItemQty" type="text" inputmode="numeric" pattern="[0-9]*" aria-label="기준 수량 (필수)" placeholder="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><input id="newItemThreshold" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="이 수량 이하일시 발주 (선택)" aria-label="이 수량 이하일시 발주 (선택)" /></div>
+<div id="newItemCountFields"><div class="new-item-quantity"><input id="newItemQty" type="text" readonly inputmode="none" pattern="[0-9]*" aria-label="기준 수량 (필수)" placeholder="기준 수량 (필수)" /><div class="unit-toggle" aria-label="수량 단위"><button type="button" class="active" data-new-unit="개" aria-pressed="true">개</button><button type="button" data-new-unit="박스" aria-pressed="false">박스</button></div></div><input id="newItemThreshold" type="text" readonly inputmode="none" pattern="[0-9]*" placeholder="입력 수량 이하일시 발주 (선택)" aria-label="입력 수량 이하일시 발주 (선택)" /></div>
+<div id="addNumberKeypad" class="quantity-keypad" hidden><div class="keypad-grid"></div></div>
 <p id="addItemStatus" class="required-message" role="status"></p><div class="admin-tabs"><button type="submit" class="admin-tab active" id="confirmAddItem">추가</button></div></form></div>
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
@@ -1656,6 +1657,7 @@
   function setOrderEditing(editing) {
     if (!editing && dragState) endOrderDrag({pointerId:dragState.pointerId});
     cancelPendingDrag();
+    if(!editing && targetEditor.classList.contains('order-mode'))restoreDraftOrder();
     selectedItemLabels.clear();updateOrderSelection();
     targetEditor.classList.toggle('order-mode',editing);
     document.body.classList.toggle('inventory-order-mode',editing);
@@ -1673,7 +1675,7 @@
   }
   document.getElementById('editModeBack').innerHTML=document.getElementById('prevBtn').innerHTML;
   document.getElementById('editModeBack').addEventListener('click',()=>setOrderEditing(false));
-  document.getElementById('orderDoneBtn').addEventListener('click',()=>setOrderEditing(false));
+  document.getElementById('orderDoneBtn').addEventListener('click',()=>{commitDraftOrder();setOrderEditing(false);});
 
   document.getElementById('targetPrevPage').innerHTML = document.getElementById('prevBtn').innerHTML;
   document.getElementById('targetNextPage').innerHTML = document.getElementById('nextBtn').innerHTML;
@@ -1797,14 +1799,26 @@
   }
   let orderChanged = false;
   function refreshOrderButtons(section) {}
-  function persistSectionOrder(section) {
-    const page = Number(section.dataset.page)-1;
-    const items = DATA[page];
-    DATA[page] = [...section.querySelectorAll('.target-edit-row')].map(row => items.find(item => item.label === row.dataset.itemLabel));
-    const order = DATA.map(items => items.map(item => item.label));
-    localStorage.setItem(ORDER_KEY, JSON.stringify(order));
-    queueValue(TARGETS_DATE, ORDER_ID, ORDER_ID, JSON.stringify(order));
-    orderChanged = true;
+  function persistSectionOrder(section) { orderChanged=true; }
+  function restoreDraftOrder() {
+    targetKeypad.hidden=true;targetEditor.appendChild(targetKeypad);
+    targetEditorFields.querySelectorAll('.target-edit-page').forEach(section=>{
+      const items=DATA[Number(section.dataset.page)-1];
+      const footer=section.querySelector('.target-page-add');
+      items.forEach(item=>{const row=[...section.querySelectorAll('.target-edit-row')].find(row=>row.dataset.itemLabel===item.label);if(row)section.insertBefore(row,footer);});
+    });
+    orderChanged=false;
+  }
+  function commitDraftOrder() {
+    targetEditorFields.querySelectorAll('.target-edit-page').forEach(section=>{
+      const page=Number(section.dataset.page)-1;const items=DATA[page];
+      DATA[page]=[...section.querySelectorAll('.target-edit-row')].map(row=>items.find(item=>item.label===row.dataset.itemLabel)).filter(Boolean);
+    });
+    const order=DATA.map(items=>items.map(item=>item.label));
+    localStorage.setItem(ORDER_KEY,JSON.stringify(order));
+    queueValue(TARGETS_DATE,ORDER_ID,ORDER_ID,JSON.stringify(order));
+    orderChanged=true;applyOrderToChecklist();
+    flushPending().catch(()=>{});
   }
   let dragState = null;
   let dragFrame = null;
@@ -2016,10 +2030,44 @@
   document.querySelector('.admin-view-header').prepend(document.getElementById('addItemBack'));
   const addItemDialog = document.getElementById('addItemDialog');
   adminView.appendChild(addItemDialog);
+  const addNumberKeypad=document.getElementById('addNumberKeypad');
+  let activeAddNumber=null;
+  let replaceAddNumber=true;
+  for(const key of ['1','2','3','4','5','6','7','8','9','clear','0','next']) {
+    const button=document.createElement('button');button.type='button';button.dataset.addNumber=key;
+    button.innerHTML=key==='clear'?quantityDeleteIcon:key==='next'?'→':key;
+    button.setAttribute('aria-label',key==='clear'?'입력 지우기':key==='next'?'다음 입력':key);
+    addNumberKeypad.querySelector('.keypad-grid').appendChild(button);
+  }
+  function openAddNumber(input) {
+    activeAddNumber=input;replaceAddNumber=true;addNumberKeypad.hidden=false;
+    (input.id==='newItemQty'?input.closest('.new-item-quantity'):input).after(addNumberKeypad);
+  }
+  for(const id of ['newItemQty','newItemThreshold']){
+    const input=document.getElementById(id);
+    input.addEventListener('focus',()=>openAddNumber(input));
+    input.addEventListener('click',()=>openAddNumber(input));
+    input.addEventListener('keydown',event=>{
+      if(/^\d$/.test(event.key)){event.preventDefault();addNumberKeypad.querySelector(`[data-add-number="${event.key}"]`).click();}
+      else if(event.key==='Backspace'){event.preventDefault();input.value=input.value.slice(0,-1);replaceAddNumber=false;}
+    });
+  }
+  document.getElementById('newItemLabel').addEventListener('focus',()=>{addNumberKeypad.hidden=true;activeAddNumber=null;});
+  addNumberKeypad.addEventListener('pointerdown',event=>event.preventDefault());
+  addNumberKeypad.addEventListener('click',event=>{
+    const key=event.target.closest('[data-add-number]')?.dataset.addNumber;if(!key||!activeAddNumber)return;
+    if(key==='next'){
+      if(activeAddNumber.id==='newItemQty'){if(!activeAddNumber.value){document.getElementById('addItemStatus').textContent='수량을 입력해 주세요.';return;}document.getElementById('newItemThreshold').focus({preventScroll:true});}
+      else {addNumberKeypad.hidden=true;activeAddNumber=null;}
+      return;
+    }
+    activeAddNumber.value=key==='clear'?'':((replaceAddNumber?'':activeAddNumber.value)+key).replace(/^0+(?=\d)/,'').slice(0,6);replaceAddNumber=false;
+  });
   let newItemType = 'count';
   let newItemUnit = '개';
   function setNewItemType(type) {
     newItemType=type;
+    if(type==='segments'){addNumberKeypad.hidden=true;activeAddNumber=null;}
     document.getElementById('newItemCountType').classList.toggle('active',type==='count');
     document.getElementById('newItemSegmentType').classList.toggle('active',type==='segments');
     document.getElementById('newItemCountFields').hidden=type==='segments';
@@ -2037,6 +2085,7 @@
   let addingPage = 1;
   function openAddItem(page) {
     addingPage = page;
+    addNumberKeypad.hidden=true;activeAddNumber=null;
     document.getElementById('addItemForm').reset();
     document.getElementById('addItemStatus').textContent = '';
     setNewItemType('count');
