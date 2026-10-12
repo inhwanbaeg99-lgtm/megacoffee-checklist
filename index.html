@@ -554,6 +554,7 @@
   }
   .quantity-keypad[hidden] { display: none; }
   .quantity-keypad { width: 100%; background: transparent; color: var(--ink); padding: 12px 0 20px; }
+  #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
@@ -1137,7 +1138,8 @@
     adminInlineLogin.hidden = false;
     sectionsEl.hidden = true;
     saveBtn.style.display = 'none';
-    bottomNav.style.display = 'none';
+    bottomNav.style.display = '';
+    bottomNav.inert = true;
     adminKeypad.hidden = false;
     adminPassInput.focus({ preventScroll: true });
   }
@@ -1146,6 +1148,7 @@
     adminPassInput.value = '';
     eyebrowWrap.hidden = false;
     adminKeypad.hidden = true;
+    bottomNav.inert = false;
     sectionsEl.hidden = false;
     saveBtn.style.display = '';
     bottomNav.style.display = '';
