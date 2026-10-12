@@ -553,16 +553,13 @@
     color: var(--accent);
   }
   .quantity-keypad[hidden] { display: none; }
-  .quantity-keypad { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 520px); background: var(--paper); color: var(--ink); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); z-index: 50; border-top: 1px solid var(--line); box-shadow: 0 -6px 24px #00000012; }
-  .keypad-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; font-weight: 700; }
+  .quantity-keypad { width: 100%; background: transparent; color: var(--ink); padding: 12px 0 20px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
   .quantity-keypad button:active { background: var(--accent-soft); }
   .keypad-next { width: 100%; height: 42px; margin-top: 8px; background: var(--accent) !important; color: #fff !important; font-weight: 700 !important; }
   .item.keypad-active { background: var(--accent-soft); border-radius: 10px; }
-  body.keypad-open { padding-bottom: calc(320px + env(safe-area-inset-bottom)); }
-  .qty-input { scroll-margin-bottom: 330px; }
 </style>
 </head>
 <body>
@@ -628,7 +625,6 @@
   </div>
 
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
-  <div class="keypad-header"><span id="keypadLabel"></span><button type="button" id="keypadClose" aria-label="키패드 닫기">닫기</button></div>
   <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear">지우기</button><button type="button" data-key="0">0</button><button type="button" data-key="backspace" aria-label="한 자리 삭제">←</button></div>
   <button type="button" class="keypad-next" id="keypadNext">다음 입력</button>
 </div>
@@ -817,7 +813,9 @@
     activeQuantityInput = input;
     replaceQuantity = true;
     input.closest('.item').classList.add('keypad-active');
-    document.getElementById('keypadLabel').textContent = input.getAttribute('aria-label');
+    const section = input.closest('.section');
+    const anchor = [...section.querySelectorAll('.item')].find(row => row.dataset.id === '꿀') || section.querySelector('.item');
+    anchor.after(quantityKeypad);
     quantityKeypad.hidden = false;
     document.body.classList.add('keypad-open');
     input.focus({ preventScroll: true });
@@ -834,7 +832,6 @@
     replaceQuantity = false;
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  document.getElementById('keypadClose').addEventListener('click', closeQuantityKeypad);
   document.getElementById('keypadNext').addEventListener('click', () => {
     const inputs = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .qty-input`)];
     const next = inputs[inputs.indexOf(activeQuantityInput) + 1];
