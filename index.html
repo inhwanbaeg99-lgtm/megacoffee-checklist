@@ -1201,6 +1201,16 @@
       if (val === undefined || val === '') return;
       queueValue(state.date, id, ref.item.label, val);
     });
+    if (!requireComplete) {
+      showPage(targetPage);
+      navigationStatus.textContent = '입력은 기기에 저장됐으며 서버에 동기화 중입니다.';
+      flushPending().then(() => {
+        if (!pageSaveInProgress) navigationStatus.textContent = '';
+      }).catch(() => {
+        if (!pageSaveInProgress) navigationStatus.textContent = '서버 저장 대기 중입니다. 입력은 보관되며 자동으로 재시도합니다.';
+      });
+      return;
+    }
     const previousText = saveBtn.textContent;
     pageSaveInProgress = true;
     prevBtn.disabled = nextBtn.disabled = true;
