@@ -559,8 +559,9 @@
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
-  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"] { display: flex; align-items: center; justify-content: center; color: #000; }
-  .keypad-grid button[data-key="0"], .keypad-grid button[data-key="1"], .keypad-grid button[data-key="2"], .keypad-grid button[data-key="3"], .keypad-grid button[data-key="4"], .keypad-grid button[data-key="5"], .keypad-grid button[data-key="6"], .keypad-grid button[data-key="7"], .keypad-grid button[data-key="8"], .keypad-grid button[data-key="9"], .keypad-grid button[data-admin-key]:not([data-admin-key="clear"]):not([data-admin-key="submit"]) { color: #555; }
+  .keypad-grid button { color: #777; }
+  .keypad-grid button[data-key="clear"], .keypad-grid button[data-admin-key="clear"] { display: flex; align-items: center; justify-content: center; }
+  .keypad-grid svg { stroke: currentColor; }
   @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
   .keypad-grid button:active { color: #000 !important; }
   .quantity-keypad button:active { background: var(--accent-soft); }
@@ -608,7 +609,7 @@
     </div>
 
     <div id="adminKeypad" class="quantity-keypad" hidden aria-label="관리자 번호 키패드">
-      <div class="keypad-grid"><button type="button" data-admin-key="1">1</button><button type="button" data-admin-key="2">2</button><button type="button" data-admin-key="3">3</button><button type="button" data-admin-key="4">4</button><button type="button" data-admin-key="5">5</button><button type="button" data-admin-key="6">6</button><button type="button" data-admin-key="7">7</button><button type="button" data-admin-key="8">8</button><button type="button" data-admin-key="9">9</button><button type="button" data-admin-key="clear" aria-label="관리자 번호 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-admin-key="0">0</button><button type="button" data-admin-key="submit" aria-label="관리자 로그인">→</button></div>
+      <div class="keypad-grid"><button type="button" data-admin-key="1">1</button><button type="button" data-admin-key="2">2</button><button type="button" data-admin-key="3">3</button><button type="button" data-admin-key="4">4</button><button type="button" data-admin-key="5">5</button><button type="button" data-admin-key="6">6</button><button type="button" data-admin-key="7">7</button><button type="button" data-admin-key="8">8</button><button type="button" data-admin-key="9">9</button><button type="button" data-admin-key="clear" aria-label="관리자 번호 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-admin-key="0">0</button><button type="button" data-admin-key="submit" aria-label="관리자 로그인">→</button></div>
     </div>
     <div id="sections"></div>
     <button class="save-btn" id="saveBtn">저장</button>
@@ -634,7 +635,7 @@
   </div>
 
 <div class="quantity-keypad" id="quantityKeypad" hidden aria-label="수량 입력 키패드">
-  <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
+  <div class="keypad-grid"><button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="clear" aria-label="입력 지우기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 5H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9.2a2 2 0 0 1-1.5-.7L2.8 13.3a2 2 0 0 1 0-2.6l4.9-5A2 2 0 0 1 9.2 5Z"/><path d="m11.5 9 6 6m0-6-6 6"/></svg></button><button type="button" data-key="0">0</button><button type="button" id="keypadNext" aria-label="다음 항목">→</button></div>
 </div>
 <script>
   const DATA = [
