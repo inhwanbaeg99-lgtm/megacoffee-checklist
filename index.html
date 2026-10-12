@@ -812,6 +812,15 @@
     document.body.classList.remove('keypad-open');
     activeQuantityInput = null;
   }
+  function scrollToInputItem(row) {
+    requestAnimationFrame(() => {
+      const firstRow = row.closest('.section').querySelector('.item');
+      const firstItemTop = firstRow.getBoundingClientRect().top + window.scrollY;
+      const rowTop = row.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: Math.max(0, rowTop - firstItemTop),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    });
+  }
   function openQuantityKeypad(input) {
     activeQuantityInput = input;
     replaceQuantity = true;
@@ -819,7 +828,7 @@
     quantityKeypad.hidden = false;
     document.body.classList.add('keypad-open');
     input.focus({ preventScroll: true });
-    requestAnimationFrame(() => input.closest('.item').scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+    scrollToInputItem(input.closest('.item'));
   }
   quantityKeypad.addEventListener('pointerdown', e => e.preventDefault());
   quantityKeypad.addEventListener('click', e => {
@@ -838,7 +847,7 @@
     else {
       closeQuantityKeypad();
       row.querySelector('.seg-btn')?.focus({ preventScroll: true });
-      requestAnimationFrame(() => row.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+      scrollToInputItem(row);
     }
   }
   function advanceFromItem(row) {
