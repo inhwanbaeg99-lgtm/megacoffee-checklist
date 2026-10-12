@@ -563,9 +563,10 @@
   .target-page-tools { display: flex; justify-content: flex-end; gap: 12px; padding: 6px 0; }
   .target-order-edit { font-size:16px !important; }
   .target-page-add { display:flex; align-items:center; justify-content:center; width:calc(100% + 44px); margin:0 -22px -16px; padding:14px 16px; border:0; border-top:0; border-radius:0 0 16px 16px; background:var(--paper); color:var(--ink-sub); cursor:pointer; }
-  .target-delete { display:none; width:26px; height:26px; border:0; border-radius:50%; background:transparent; color:#e0483e; font:inherit; font-size:22px; line-height:1; transform:translateY(-2px); padding:0; flex-shrink:0; touch-action:manipulation; }
-  .target-edit-page.order-editing .target-delete { display:inline-flex; align-items:center; justify-content:center; }
-  .drag-preview .target-delete { display:inline-flex; align-items:center; justify-content:center; }
+  .target-select { display:none; width:24px; height:24px; border:2px solid var(--line); border-radius:50%; background:transparent; color:var(--line); padding:0; flex-shrink:0; touch-action:manipulation; }
+  .target-select[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .target-edit-page.order-editing .target-select { display:inline-flex; align-items:center; justify-content:center; }
+  .drag-preview .target-select { display:inline-flex; align-items:center; justify-content:center; }
   .drag-preview { border:0; }
   .target-item-name { display:flex; align-items:center; gap:8px; min-width:0; font-size:16px; font-weight:700; }
   #addItemBack { width:44px; height:44px; }
@@ -579,11 +580,13 @@
   #addItemDialog label { display: block; margin: 12px 0; font-size: 14px; font-weight: 700; }
   #addItemDialog input, #addItemDialog select { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border: 0; border-radius: 10px; font-family: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
   .target-edit-page { background: var(--paper); border-radius: 16px; padding: 8px 22px 16px; }
-  .target-edit-page.order-editing .target-edit-row { touch-action:pan-y; user-select:none; }
+  .target-edit-page.order-editing .target-edit-row { touch-action:pan-y; user-select:none; width:calc(100% + 44px); margin:0 -22px; padding:10px 22px; }
+  .target-edit-page.order-editing .target-item-name, .drag-preview .target-item-name { padding-left:34px; }
+  .target-edit-page.order-editing .target-edit-row.selected { background:color-mix(in srgb,var(--paper) 90%,var(--ink) 10%); }
   .target-item-name { position:relative; }
-  .target-delete { position:absolute; left:-22px; top:50%; margin-top:-13px; }
+  .target-select { position:absolute; left:0; top:50%; margin-top:-12px; }
   .target-edit-row.dragging { opacity: .2; }
-  .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: color-mix(in srgb, var(--paper) 92%, var(--ink) 8%); border-radius: 6px; box-shadow: 0 3px 12px #0001; opacity: .98; will-change: transform; }
+  .drag-preview { position: fixed; pointer-events: none; z-index: 999; margin: 0; background: color-mix(in srgb, var(--paper) 92%, var(--ink) 8%); border-radius: 0; box-shadow: none; opacity: .98; will-change: transform; }
   .add-type-row { display: flex; gap: 8px; }
   .add-type-row button { flex: 1; }
   .new-item-quantity { display:flex; align-items:center; background:var(--bg); border-radius:10px; margin-top:12px; padding:0 8px; }
@@ -609,8 +612,10 @@
   .order-mode .target-page-tools, .order-mode #targetEditorActions, .order-mode #targetEditorStatus { display:none; }
   body.inventory-order-mode { padding-bottom:calc(130px + env(safe-area-inset-bottom)); }
   #orderDoneBar[hidden] { display:none; }
-  #orderDoneBar { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
-  #orderDoneBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
+  #orderDoneBar { display:flex; gap:10px; position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,672px); padding:24px 16px calc(20px + env(safe-area-inset-bottom)); background:linear-gradient(to bottom,transparent,var(--bg) 28%); z-index:30; }
+  #orderDeleteBtn[hidden] { display:none; }
+  #orderDeleteBtn { color:#e0483e !important; }
+  #orderDoneBtn, #orderDeleteBtn { width:100%; height:56px; border:0; border-radius:16px; background:var(--paper); color:var(--ink); font-family:inherit; font-size:18px; font-weight:700; cursor:pointer; }
   .reorder-indicator { display:none; justify-self:end; color:var(--ink-sub); align-items:center; }
   .target-edit-page.order-editing .reorder-indicator, .drag-preview .reorder-indicator { display:flex; }
   .target-edit-row small { color: var(--ink-sub); }
@@ -693,7 +698,7 @@
     </div>
     <select class="admin-date-select" id="adminDateSelect"></select>
     <div id="adminSummary"></div>
-    <div id="orderDoneBar" hidden><button type="button" id="orderDoneBtn">완료</button></div>
+    <div id="orderDoneBar" hidden><button type="button" id="orderDeleteBtn" hidden>삭제</button><button type="button" id="orderDoneBtn">완료</button></div>
     <form id="targetEditor" hidden>
       <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
       <div id="targetEditorFields"></div>
@@ -1564,9 +1569,31 @@
   const targetEditorFields = document.getElementById('targetEditorFields');
   const targetEditorStatus = document.getElementById('targetEditorStatus');
   const targetKeypad = document.getElementById('targetKeypad');
+  const selectedItemLabels=new Set();
+  function updateOrderSelection() {
+    targetEditorFields.querySelectorAll('.target-edit-row').forEach(row=>{
+      const selected=selectedItemLabels.has(row.dataset.itemLabel);
+      row.classList.toggle('selected',selected);
+      row.querySelector('.target-select')?.setAttribute('aria-pressed',String(selected));
+    });
+    document.getElementById('orderDeleteBtn').hidden=selectedItemLabels.size===0;
+  }
+  document.getElementById('orderDeleteBtn').addEventListener('click',()=>{
+    if(!selectedItemLabels.size)return;
+    for(const label of selectedItemLabels)if(!deletedItems.includes(label))deletedItems.push(label);
+    localStorage.setItem(DELETED_KEY,JSON.stringify(deletedItems));
+    queueValue(TARGETS_DATE,DELETED_ID,DELETED_ID,JSON.stringify(deletedItems));
+    applyDeletedItems();
+    targetEditorFields.querySelectorAll('.target-edit-row').forEach(row=>{if(selectedItemLabels.has(row.dataset.itemLabel))row.remove();});
+    selectedItemLabels.clear();updateOrderSelection();
+    orderChanged=true;applyOrderToChecklist();
+    flushPending().catch(()=>{});
+  });
+
   function setOrderEditing(editing) {
     if (!editing && dragState) endOrderDrag({pointerId:dragState.pointerId});
     cancelPendingDrag();
+    selectedItemLabels.clear();updateOrderSelection();
     targetEditor.classList.toggle('order-mode',editing);
     document.body.classList.toggle('inventory-order-mode',editing);
     document.getElementById('adminTabs').hidden=editing;
@@ -1752,7 +1779,7 @@
     if(event.target.closest('.order-editing'))event.preventDefault();
   });
   targetEditorFields.addEventListener('pointerdown', event => {
-    if(event.target.closest('.target-delete')) return;
+    if(event.target.closest('.target-select')) return;
     const row=event.target.closest('.target-edit-row');
     const section=row?.closest('.target-edit-page');
     if(!section?.classList.contains('order-editing') || event.button>0) return;
@@ -1764,7 +1791,7 @@
       targetKeypad.hidden=true;activeTargetInput=null;
       const rect=row.getBoundingClientRect();
       const preview=row.cloneNode(true);preview.classList.add('drag-preview');
-      preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;padding:10px 0;box-sizing:border-box;`;
+      preview.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;padding:10px 22px;box-sizing:border-box;`;
       preview.setAttribute('aria-hidden','true');preview.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
       document.body.appendChild(preview);row.classList.add('dragging');
       dragState={row,section,preview,pointerId:pointer.pointerId,startY:pointer.y,y:pointer.y,changed:false};
@@ -1841,15 +1868,11 @@
         row.className = 'target-edit-row';
         row.dataset.itemLabel = item.label;
         const nameWrap=document.createElement('div');nameWrap.className='target-item-name';
-        const remove=document.createElement('button');remove.type='button';remove.className='target-delete';remove.textContent='−';remove.setAttribute('aria-label',`${item.label} 삭제`);
+        const remove=document.createElement('button');remove.type='button';remove.className='target-select';remove.setAttribute('aria-label',`${item.label} 선택`);remove.setAttribute('aria-pressed','false');
+        remove.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
         remove.addEventListener('click',()=>{
-          if(!deletedItems.includes(item.label))deletedItems.push(item.label);
-          localStorage.setItem(DELETED_KEY,JSON.stringify(deletedItems));
-          queueValue(TARGETS_DATE,DELETED_ID,DELETED_ID,JSON.stringify(deletedItems));
-          applyDeletedItems();row.remove();targetKeypad.hidden=true;activeTargetInput=null;
-          currentScrollItem=null;inputScrollSpace.style.height='0px';
-          orderChanged=true;applyOrderToChecklist();
-          flushPending().catch(()=>{});
+          if(selectedItemLabels.has(item.label))selectedItemLabels.delete(item.label);else selectedItemLabels.add(item.label);
+          updateOrderSelection();
         });
         const label = document.createElement('label');
         label.textContent = item.label;
