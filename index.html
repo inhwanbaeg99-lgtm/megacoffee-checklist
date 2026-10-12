@@ -557,6 +557,7 @@
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
   .keypad-grid button { height: 44px; font-size: 22px; font-weight: 600; }
+  .keypad-grid button[data-key="clear"] { font-size: 16px; font-weight: 700; color: var(--accent); }
   .quantity-keypad button:active { background: var(--accent-soft); }
 </style>
 </head>
