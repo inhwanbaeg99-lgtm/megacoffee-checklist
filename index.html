@@ -555,6 +555,7 @@
   .quantity-keypad[hidden] { display: none; }
   .quantity-keypad { width: 100%; background: transparent; color: var(--ink); padding: 12px 0 20px; }
   #adminKeypad { background: var(--paper); border-radius: 16px; margin-bottom: 14px; padding: 16px 22px; }
+  html, body, body * { touch-action: manipulation; }
   .required-message { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
   .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
   .quantity-keypad button { font: inherit; color: inherit; background: transparent; border: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; }
@@ -1482,6 +1483,8 @@
     closeAdminLogin();
   });
   adminBackBtn.addEventListener('click', exitAdminView);
+
+  document.addEventListener('dblclick', event => event.preventDefault(), { passive: false });
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
