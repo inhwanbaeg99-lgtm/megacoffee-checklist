@@ -824,12 +824,24 @@
     replaceQuantity = false;
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  document.getElementById('keypadNext').addEventListener('click', () => {
-    const inputs = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .qty-input`)];
-    const next = inputs[inputs.indexOf(activeQuantityInput) + 1];
-    if (next) openQuantityKeypad(next);
+  function activateItem(row) {
+    const input = row.querySelector('.qty-input');
+    if (input) openQuantityKeypad(input);
+    else {
+      closeQuantityKeypad();
+      row.querySelector('.seg-btn')?.focus({ preventScroll: true });
+      row.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  function advanceFromItem(row) {
+    const items = [...row.closest('.section').querySelectorAll('.item')];
+    const next = items[items.indexOf(row) + 1];
+    if (next) activateItem(next);
     else if (currentPage < totalPages) showPage(currentPage + 1);
     else closeQuantityKeypad();
+  }
+  document.getElementById('keypadNext').addEventListener('click', () => {
+    if (activeQuantityInput) advanceFromItem(activeQuantityInput.closest('.item'));
   });
 
   DATA.forEach((items, pageIdx) => {
@@ -909,6 +921,7 @@
             selectSeg(val);
             saveState();
             updateProgress();
+            advanceFromItem(row);
           });
         });
 
