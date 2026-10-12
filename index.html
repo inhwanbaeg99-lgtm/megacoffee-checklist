@@ -926,12 +926,33 @@
       scrollToInputItem(row);
     }
   }
+  function validateCurrentPage() {
+    const rows = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .item`)];
+    const missing = rows.find(row => {
+      const value = state.values[row.dataset.id];
+      return value === undefined || value === null || String(value).trim() === '';
+    });
+    if (missing) {
+      document.querySelectorAll('.required-message').forEach(el => el.remove());
+      const message = document.createElement('div');
+      message.className = 'required-message';
+      message.setAttribute('role', 'alert');
+      message.textContent = missing.querySelector('.qty-input') ? '수량을 입력해 주세요.' : '수량을 선택해 주세요.';
+      missing.querySelector('.item-body').appendChild(message);
+      activateItem(missing);
+      return false;
+    }
+    return true;
+  }
   function advanceFromItem(row) {
     const items = [...row.closest('.section').querySelectorAll('.item')];
     const next = items[items.indexOf(row) + 1];
     if (next) activateItem(next);
-    else if (currentPage < totalPages) showPage(currentPage + 1);
-    else closeQuantityKeypad();
+    else {
+      if (!validateCurrentPage()) return;
+      if (currentPage < totalPages) showPage(currentPage + 1);
+      else closeQuantityKeypad();
+    }
   }
   document.getElementById('keypadNext').addEventListener('click', () => {
     if (!activeQuantityInput) return;
@@ -1178,20 +1199,7 @@
   async function saveAndNavigate(targetPage, requireComplete) {
     if (pageSaveInProgress) return;
     const rows = [...document.querySelectorAll(`.section[data-page="${currentPage}"] .item`)];
-    const missing = rows.find(row => {
-      const value = state.values[row.dataset.id];
-      return value === undefined || value === null || String(value).trim() === '';
-    });
-    if (requireComplete && missing) {
-      document.querySelectorAll('.required-message').forEach(el => el.remove());
-      const message = document.createElement('div');
-      message.className = 'required-message';
-      message.setAttribute('role', 'alert');
-      message.textContent = missing.querySelector('.qty-input') ? '수량을 입력해 주세요.' : '수량을 선택해 주세요.';
-      missing.querySelector('.item-body').appendChild(message);
-      activateItem(missing);
-      return;
-    }
+    if (requireComplete && !validateCurrentPage()) return;
     saveState();
     rows.forEach(row => {
       const id = row.dataset.id;
