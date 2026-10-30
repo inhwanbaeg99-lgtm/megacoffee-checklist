@@ -1609,6 +1609,9 @@
   const orderKey = (label) => String(label).replace(/[\s·]/g, '');
   const ORDER_LOOKUP = Object.fromEntries(Object.entries(ORDER_NAMES).map(([k, v]) => [orderKey(k), v]));
   const orderInfo = (label) => ORDER_LOOKUP[orderKey(label)] || [label, '검색 or 사입'];
+  // 카테고리 안에서는 위 목록 순서대로 (목록에 없는 품목은 맨 뒤)
+  const ORDER_RANK = Object.fromEntries(Object.keys(ORDER_NAMES).map((k, i) => [orderKey(k), i]));
+  const orderRank = (label) => ORDER_RANK[orderKey(label)] ?? Infinity;
 
   function buildReorderSummary(valuesMap) {
     adminSummaryEl.innerHTML = '';
@@ -1627,9 +1630,10 @@
         text = missing !== null ? `${missing}${unit}` : '발주 필요';
       }
       const [name, cat] = orderInfo(item.label);
-      (groups.get(cat) || groups.get('검색 or 사입')).push({ name, text });
+      (groups.get(cat) || groups.get('검색 or 사입')).push({ name, text, rank: orderRank(item.label) });
     });
 
+    groups.forEach((rows) => rows.sort((a, b) => a.rank - b.rank));
     const used = [...groups].filter(([, rows]) => rows.length);
     if (!used.length) {
       adminSummaryEl.innerHTML = '<div class="admin-empty">발주가 필요한 항목이 없습니다</div>';
