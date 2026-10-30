@@ -676,6 +676,85 @@
   @media (hover: hover) { .keypad-grid button:hover { color: #000 !important; } }
   .keypad-grid button:active { color: #000 !important; }
   .quantity-keypad button:active { background: var(--accent-soft); }
+
+  /* ---------- 관리자 화면: 토스 스타일 (회색 바탕 + 흰 카드) ---------- */
+  body:has(#adminView:not([hidden])) { background: var(--paper); }
+  #adminView .admin-sticky-header { background: var(--paper); }
+  #adminView .admin-sticky-header::after { background: linear-gradient(to bottom, var(--paper), transparent); }
+  #adminView .admin-sticky-header #adminTabs, #adminView .admin-view-header #adminBackBtn, #adminView #editModeBack, #adminView #addItemBack { background: var(--bg); }
+  .date-pill { position: relative; display: flex; align-items: center; gap: 10px; height: 52px; margin: 4px 0 0; padding: 0 16px; background: var(--bg); border-radius: 16px; color: var(--ink); cursor: pointer; }
+  .date-pill:has(> select[hidden]) { display: none; }
+  .date-pill .date-ic { flex: none; color: var(--accent); }
+  .date-pill .date-text { flex: 1; display: flex; align-items: baseline; gap: 8px; font-size: 16px; }
+  .date-pill .date-text b { font-weight: 800; }
+  .date-pill .date-text span { font-size: 15px; font-weight: 600; color: var(--ink-sub); }
+  .date-pill .date-chev { flex: none; color: var(--ink-sub); }
+  #adminView .date-pill .admin-date-select { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; font-size: 16px; }
+  .ro-hero { padding: 28px 4px 22px; }
+  .ro-hero-sub { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--ink-sub); }
+  .ro-hero-num { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+  .ro-hero-of { font-size: 20px; font-weight: 700; color: var(--ink-sub); }
+  .ro-card { background: var(--bg); border-radius: 22px; padding: 20px 20px 8px; margin-bottom: 12px; }
+  .ro-card[hidden] { display: none; }
+  .ro-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .ro-title { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
+  .ro-count { font-size: 17px; font-weight: 800; color: var(--accent); }
+  .ro-list { list-style: none; margin: 0; padding: 0; }
+  .ro-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .ro-item[hidden] { display: none; }
+  .ro-item.ro-first { border-top: 0; }
+  .ro-name { font-size: 16px; font-weight: 600; color: var(--ink); word-break: keep-all; }
+  .ro-qty { flex: none; min-width: 52px; padding: 7px 12px; border-radius: 10px; background: #fdeceb; color: #e0483e; font-size: 15px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+  .ro-qty.is-flag { background: var(--accent-soft); color: var(--accent); }
+  .ro-empty { background: var(--bg); border-radius: 22px; padding: 40px 20px; margin-top: 8px; text-align: center; color: var(--ink-sub); font-size: 15px; font-weight: 600; }
+  @media (prefers-color-scheme: dark) { .ro-qty, .st-badge.st-under { background: #e0483e26 !important; } }
+  .st-bar { display: flex; gap: 3px; height: 10px; margin: -8px 4px 12px; border-radius: 999px; overflow: hidden; }
+  .st-seg { min-width: 0; }
+  .st-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 4px 20px; font-size: 13px; font-weight: 600; color: var(--ink-sub); }
+  .st-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .st-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .st-seg.st-under, .st-dot.st-under { background: #e0483e; }
+  .st-seg.st-equal, .st-dot.st-equal { background: var(--accent); }
+  .st-seg.st-over, .st-dot.st-over { background: #9cc3fb; }
+  .st-filter { display: flex; gap: 4px; padding: 4px; margin-bottom: 12px; background: color-mix(in srgb, var(--paper) 88%, var(--ink) 12%); border-radius: 14px; }
+  .st-filter button { flex: 1; height: 38px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-sub); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .st-filter button[aria-selected="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .st-val { flex: none; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .st-val b { font-weight: 700; color: var(--ink); }
+  .st-badge { padding: 6px 10px; border-radius: 10px; font-size: 13px; font-weight: 800; }
+  .st-badge.st-under { background: #fdeceb; color: #e0483e; }
+  .st-badge.st-equal, .st-badge.st-over { background: var(--accent-soft); color: var(--accent); }
+  #adminView #summaryExportBtn { height: 56px; margin-top: 8px; }
+  /* 목록 수정 */
+  #adminView #targetPageNav { background: var(--paper); justify-content: flex-start; gap: 8px; margin: 12px -16px 0; padding: 0 16px 4px; overflow-x: auto; }
+  #adminView #targetPageNav .page-btn { display: none; }
+  #adminView #targetPageDots { display: flex; gap: 8px; }
+  .target-page-pill { flex: none; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--bg); color: var(--ink-sub); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .target-page-pill.active { background: var(--accent); color: #fff; }
+  #adminView .target-hero { padding-top: 12px; padding-bottom: 8px; }
+  .order-mode .target-hero { display: none; }
+  #adminView #targetEditorFields { margin-top: 4px; }
+  #adminView .target-edit-page { background: var(--bg); border-radius: 22px; padding: 16px 22px 0; overflow: hidden; }
+  #adminView .target-page-tools { align-items: center; margin-right: 0; min-height: 36px; }
+  #adminView .target-page-label { font-size: 17px; font-weight: 800; color: var(--ink); }
+  #adminView .target-add-btn { font-size: 15px; }
+  #adminView .target-edit-row { min-height: 60px; padding: 10px 0; }
+  #adminView .target-edit-page.order-editing .target-edit-row { padding: 10px 22px; }
+  #adminView .target-edit-row > label, #adminView .target-item-name { font-size: 16px; font-weight: 600; }
+  #adminView .target-edit-row > label.threshold-label { font-size: 13px; font-weight: 500; color: var(--ink-sub); }
+  #adminView .target-edit-row input { box-sizing: content-box; min-width: 28px; height: 40px; padding: 0 14px; border-radius: 12px; background: var(--paper); color: var(--ink); font-size: 16px; font-weight: 800; text-align: right; }
+  #adminView .target-edit-row input.active-target { background: var(--bg); color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+  #adminView .target-edit-row small { justify-self: end; font-size: 14px; font-weight: 700; color: var(--ink-sub); }
+  #adminView .target-page-add { gap: 8px; margin: 0 -22px; padding: 16px 22px; color: var(--accent); font-size: 16px; font-weight: 700; }
+  #adminView .target-page-add::after { content: "품목 추가"; }
+  #adminView .target-page-add svg { width: 20px; height: 20px; }
+  #adminView .target-edit-page.order-editing .target-page-add { display: none; }
+  #adminView #targetEditorActions, #adminView #orderDoneBar { background: linear-gradient(to bottom, transparent, var(--paper) 28%); }
+  #adminView #saveTargetsBtn, #adminView #orderDoneBtn, #adminView #orderDeleteBtn { height: 56px; }
+  #adminView #orderDeleteBtn { background: var(--bg); }
+  #adminView .target-edit-page.order-editing .target-edit-row.selected { background: color-mix(in srgb, var(--bg) 92%, var(--ink) 8%); }
+  #adminView #addItemDialog input, #adminView #addItemDialog .new-item-quantity { background: var(--bg); }
+  #adminView #addItemDialog .add-type-row button:not(.active) { background: var(--bg); }
 </style>
 </head>
 <body>
@@ -750,6 +829,7 @@
     <form id="targetEditor" hidden>
 
       <div class="bottom-nav" id="targetPageNav"><button type="button" class="page-btn" id="targetPrevPage" aria-label="이전 페이지">←</button><div class="page-dots" id="targetPageDots"></div><button type="button" class="page-btn" id="targetNextPage" aria-label="다음 페이지">→</button></div>
+      <div class="ro-hero target-hero"><p class="ro-hero-sub">기준 수량 수정</p><p class="ro-hero-num" id="targetHeroNum"></p></div>
       <div id="targetEditorFields"></div>
 
       <div id="targetKeypad" class="quantity-keypad" hidden aria-label="기준 수량 키패드"><div class="keypad-grid"></div></div>
@@ -1496,6 +1576,24 @@
   const adminMenu=document.getElementById('adminTabs');
   adminView.querySelector('.admin-view-header').prepend(adminMenu);
   adminStickyHeader.append(adminView.querySelector('.admin-view-header'), adminDateSelect, document.getElementById('targetPageNav'));
+  // 날짜 칸: 2026-10-30 → 오늘 10월 30일 (금) (실제 선택은 투명하게 덮은 select 가 그대로 받음)
+  const datePill=document.createElement('label');
+  datePill.className='date-pill';
+  datePill.innerHTML='<svg class="date-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="date-text"></span><svg class="date-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  adminDateSelect.before(datePill);
+  datePill.appendChild(adminDateSelect);
+  adminDateSelect.setAttribute('aria-label','날짜 선택');
+  function adminDateParts(value) {
+    const d=new Date(`${value}T00:00:00`);
+    if(Number.isNaN(d.getTime()))return {tag:'',text:value};
+    const diff=Math.round((new Date(`${state.date}T00:00:00`)-d)/86400000);
+    return {tag:diff===0?'오늘':diff===1?'어제':'',text:`${d.getMonth()+1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`};
+  }
+  const adminDateOption=(value)=>{const {tag,text}=adminDateParts(value);return `<option value="${value}">${tag?`${tag} · `:''}${text}</option>`;};
+  function updateDatePill() {
+    const {tag,text}=adminDateParts(adminDateSelect.value);
+    datePill.querySelector('.date-text').innerHTML=tag?`<b>${tag}</b><span>${text}</span>`:`<b>${text}</b>`;
+  }
   function collapseAdminMenu(){adminMenu.classList.remove('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded','false');}
   document.getElementById('adminMenuToggle').addEventListener('click',()=>{const expanded=adminMenu.classList.toggle('expanded');document.getElementById('adminMenuToggle').setAttribute('aria-expanded',String(expanded));});
   function updateAdminHeaderOffset() {
@@ -1557,25 +1655,41 @@
     return { text, cls };
   }
 
-  function buildAdminSummary(valuesMap) {
-    adminSummaryEl.innerHTML = '';
-    DATA.forEach((items, pageIdx) => {
-      const pageLabel = document.createElement('div');
-      pageLabel.className = 'admin-page-label';
-      pageLabel.textContent = `${pageIdx + 1} 페이지`;
-      adminSummaryEl.appendChild(pageLabel);
-
-      items.forEach((item) => {
-        const { text, cls } = formatSavedValue(item, valuesMap);
-        const row = document.createElement('div');
-        row.className = 'admin-row';
-        row.innerHTML = `
-          <span class="a-label">${item.label}</span>
-          <span class="a-value ${cls}">${text}</span>
-        `;
-        adminSummaryEl.appendChild(row);
+  const adminHero=(sub,num)=>`<div class="ro-hero"><p class="ro-hero-sub">${sub}</p><p class="ro-hero-num">${num}</p></div>`;
+  const STOCK_BADGE={'a-under':['under','부족'],'a-equal':['equal','딱 맞음'],'a-over':['over','넉넉']};
+  let stockFilter='all';
+  function applyStockFilter() {
+    adminSummaryEl.querySelectorAll('[data-filter]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.filter===stockFilter)));
+    adminSummaryEl.querySelectorAll('.ro-card').forEach(card=>{
+      let shown=0;
+      card.querySelectorAll('.ro-item').forEach(row=>{
+        const tone=row.dataset.tone;
+        row.hidden=!(stockFilter==='all'||(stockFilter==='under'?tone==='under':tone!=='under'));
+        row.classList.toggle('ro-first',false);
+        if(!row.hidden&&!shown++)row.classList.add('ro-first');
       });
+      card.querySelector('.ro-count').textContent=shown;
+      card.hidden=!shown;
     });
+  }
+  function buildAdminSummary(valuesMap) {
+    const all=DATA.flat();
+    const counts={under:0,equal:0,over:0};
+    all.forEach(item=>{const tone=STOCK_BADGE[formatSavedValue(item,valuesMap).cls];if(tone)counts[tone[0]]++;});
+    adminSummaryEl.innerHTML=
+      adminHero('부족한 품목',`${counts.under}<span class="ro-hero-of"> / ${all.length}개</span>`)+
+      `<div class="st-bar" aria-hidden="true">${['under','equal','over'].map(k=>`<span class="st-seg st-${k}" style="flex:${counts[k]}"></span>`).join('')}</div>
+      <div class="st-legend"><span><i class="st-dot st-under"></i>부족 ${counts.under}</span><span><i class="st-dot st-equal"></i>딱 맞음 ${counts.equal}</span><span><i class="st-dot st-over"></i>넉넉 ${counts.over}</span></div>
+      <div class="st-filter" role="tablist">${[['all','전체'],['under','부족'],['ok','충분']].map(([k,t])=>`<button type="button" role="tab" data-filter="${k}">${t}</button>`).join('')}</div>`+
+      DATA.map((items,pageIdx)=>`<section class="ro-card"><div class="ro-head"><span class="ro-title">${pageIdx+1}페이지</span><span class="ro-count">${items.length}</span></div><ul class="ro-list">${items.map(item=>{
+        const {text,cls}=formatSavedValue(item,valuesMap);
+        const badge=STOCK_BADGE[cls];
+        const tone=badge?badge[0]:'empty';
+        const value=cls==='a-empty'?'-':text;
+        return `<li class="ro-item" data-tone="${tone}" data-value="${value}"><span class="ro-name">${item.label}</span><span class="st-val"><b>${value}</b>${badge?`<span class="st-badge st-${badge[0]}">${badge[1]}</span>`:''}</span></li>`;
+      }).join('')}</ul></section>`).join('');
+    adminSummaryEl.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{stockFilter=button.dataset.filter;applyStockFilter();}));
+    applyStockFilter();
   }
 
   // 체크리스트 이름 → [발주 이름, 카테고리] (추가 발주 화면에서만 사용)
@@ -1636,24 +1750,15 @@
     groups.forEach((rows) => rows.sort((a, b) => a.rank - b.rank));
     const used = [...groups].filter(([, rows]) => rows.length);
     if (!used.length) {
-      adminSummaryEl.innerHTML = '<div class="admin-empty">발주가 필요한 항목이 없습니다</div>';
+      adminSummaryEl.innerHTML = '<div class="ro-empty">발주가 필요한 항목이 없어요</div>';
       return;
     }
-    used.forEach(([cat, rows]) => {
-      const label = document.createElement('div');
-      label.className = 'admin-page-label';
-      label.textContent = cat;
-      adminSummaryEl.appendChild(label);
-      rows.forEach(({ name, text }) => {
-        const row = document.createElement('div');
-        row.className = 'admin-row';
-        row.innerHTML = `
-          <span class="a-label">${name}</span>
-          <span class="a-value a-under">${text}</span>
-        `;
-        adminSummaryEl.appendChild(row);
-      });
-    });
+    const total = used.reduce((n, [, rows]) => n + rows.length, 0);
+    adminSummaryEl.innerHTML = adminHero('오늘 발주할 품목', `${total}개`) + used.map(([cat, rows]) => `
+      <section class="ro-card">
+        <div class="ro-head"><span class="ro-title">${cat}</span><span class="ro-count">${rows.length}</span></div>
+        <ul class="ro-list">${rows.map(({ name, text }, i) => `<li class="ro-item${i ? '' : ' ro-first'}" data-tone="under" data-value="${text}"><span class="ro-name">${name}</span><span class="ro-qty${text === '발주' ? ' is-flag' : ''}">${text}</span></li>`).join('')}</ul>
+      </section>`).join('');
   }
 
   const targetEditor = document.getElementById('targetEditor');
@@ -1748,10 +1853,12 @@
   let targetPage = 1;
   const targetPageDots = document.getElementById('targetPageDots');
   DATA.forEach((_, index) => {
-    const dot = document.createElement('span');
-    dot.className = 'page-dot';
-    dot.setAttribute('aria-label', `${index+1} 페이지`);
-    targetPageDots.appendChild(dot);
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'target-page-pill';
+    pill.textContent = `${index+1}페이지`;
+    pill.addEventListener('click', () => showTargetPage(index+1, adminStickyHeader.getBoundingClientRect().top<=1));
+    targetPageDots.appendChild(pill);
   });
   function showTargetPage(page, keepHeaderPinned=false) {
     currentScrollItem = null; inputScrollSpace.style.height = '0px';
@@ -2014,6 +2121,7 @@
     targetEditor.appendChild(targetKeypad);
     targetKeypad.hidden = true;
     targetEditorFields.replaceChildren();
+    document.getElementById('targetHeroNum').textContent = `${DATA.flat().length}개 품목`;
     DATA.forEach((items, index) => {
       const section = document.createElement('div');
       section.className = 'target-edit-page';
@@ -2302,28 +2410,28 @@
       await document.fonts.ready;
       const canvas=document.createElement('canvas');canvas.width=900;
       const context=canvas.getContext('2d');
-      const entries=[...adminSummaryEl.children].filter(el=>el.matches('.admin-page-label,.admin-row,.admin-empty,.required-message'));
+      const entries=[...adminSummaryEl.querySelectorAll('.required-message,.ro-title,.ro-item,.ro-empty')];
       function wrapText(text,maxWidth,font) {
         context.font=font;const lines=[];let line='';
         for(const character of text){if(line && context.measureText(line+character).width>maxWidth){lines.push(line);line=character;}else line+=character;}
         if(line)lines.push(line);return lines;
       }
       const blocks=entries.map(el=>{
-        if(el.classList.contains('admin-row')){
-          const value=el.querySelector('.a-value').textContent;
+        if(el.classList.contains('ro-item')){
+          const value=el.dataset.value;
           context.font='700 24px sans-serif';
           const valueWidth=Math.min(300,context.measureText(value).width+16);
-          const lines=wrapText(el.querySelector('.a-label').textContent,730-valueWidth,'600 24px sans-serif');
-          return {kind:'row',lines,value,color:el.querySelector('.a-under')?'#e0483e':el.querySelector('.a-empty')?'#999':'#201d1a',height:Math.max(60,lines.length*32+20)};
+          const lines=wrapText(el.querySelector('.ro-name').textContent,730-valueWidth,'600 24px sans-serif');
+          return {kind:'row',lines,value,color:el.dataset.tone==='under'?'#e0483e':el.dataset.tone==='empty'?'#999':'#201d1a',height:Math.max(60,lines.length*32+20)};
         }
         const lines=wrapText(el.textContent,780,'500 22px sans-serif');
-        return {kind:el.classList.contains('admin-page-label')?'page':'note',lines,height:lines.length*30+24};
+        return {kind:el.classList.contains('ro-title')?'page':'note',lines,height:lines.length*30+24};
       });
       canvas.height=220+blocks.reduce((sum,block)=>sum+block.height,0)+60;
       context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
       context.fillStyle='#201d1a';context.font='800 30px sans-serif';context.fillText('MGC · 춘천온의파크점',60,65);
       context.font='700 28px sans-serif';context.fillText(adminTab==='reorder'?'추가 발주':'재고 현황',60,115);
-      context.fillStyle='#7c766d';context.font='400 22px sans-serif';context.fillText(adminDateSelect.value,60,154);
+      context.fillStyle='#7c766d';context.font='400 22px sans-serif';context.fillText(`${adminDateSelect.value} (${'일월화수목금토'[new Date(`${adminDateSelect.value}T00:00:00`).getDay()]})`,60,154);
       context.strokeStyle='#e1e5e9';context.beginPath();context.moveTo(60,180);context.lineTo(840,180);context.stroke();
       let y=200;
       for(const block of blocks){
@@ -2392,17 +2500,19 @@
     adminTab = 'reorder';
     adminTabBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === 'reorder'));
 
-    adminDateSelect.innerHTML = `<option value="${state.date}">${state.date}</option>`;
+    adminDateSelect.innerHTML = adminDateOption(state.date);
     adminDateSelect.value = state.date;
+    updateDatePill();
     loadAdminDate(state.date);
 
     const dates = await fetchDateList();
     {
       const availableDates=[...new Set([state.date,...dates])].sort().reverse();
       adminDateSelect.innerHTML = availableDates
-        .map((d) => `<option value="${d}">${d}</option>`)
+        .map(adminDateOption)
         .join('');
       adminDateSelect.value = state.date;
+      updateDatePill();
     }
   }
   function exitAdminView() {
@@ -2413,6 +2523,7 @@
   }
 
   adminDateSelect.addEventListener('change', () => {
+    updateDatePill();
     loadAdminDate(adminDateSelect.value);
   });
 
