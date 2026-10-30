@@ -1578,46 +1578,77 @@
     });
   }
 
+  // 체크리스트 이름 → [발주 이름, 카테고리] (추가 발주 화면에서만 사용)
+  const ORDER_NAMES = {
+    '우유': ['동원우유', '유제품'], '커피빈': ['원두', '커피/티'], '초코쉘': ['초코쉘', '시럽/소스'], '요거 젤라또': ['요거트젤라또', '기타식품'],
+    '연유': ['가당연유', '유제품'], '고구마 페이스트': ['고구마페이스트', '시럽/소스'], '오곡 파우더': ['곡물파우더', '파우더류'], '망고 베이스': ['골드망고베이스', '시럽/소스'],
+    '감귤 베이스': ['귤베이스', '기타식품'], '민트 시럽': ['그린민트시럽', '시럽/소스'], '냅킨': ['냅킨', '비식품'], '녹차 티백': ['녹차 티백', '커피/티'],
+    '녹차 파우더': ['녹차파우더', '파우더류'], '디카페인 커피빈': ['디카페인 원두', '커피/티'], '딸기 그래놀라': ['딸기그래놀라', '기타식품'], '딸기 스무디 퓨레': ['딸기스무디', '시럽/소스'],
+    '딸기 분태': ['딸기쿠키크런치', '기타식품'], '라이트 바닐라 시럽': ['라이트바닐라시럽', '시럽/소스'], '라임 시럽': ['라임시럽', '시럽/소스'], '레몬에이드 베이스': ['레몬에이드 베이스', '시럽/소스'],
+    '메가 퓨레': ['메가에이드 베이스', '시럽/소스'], '모히토 시럽': ['모히또민트시럽', '시럽/소스'], '믹스 씨리얼 그래놀라': ['믹스씨리얼그래놀라', '기타식품'], '민트 파우더': ['민트베이스파우더', '파우더류'],
+    '밀크쉐이크 파우더': ['밀크쉐이크파우더', '파우더류'], '얼그레이 시럽': ['밀크티베이스 얼그레이', '시럽/소스'], '바나나 파우더': ['바나나파우더', '파우더류'], '바닐라 시럽': ['바닐라시럽', '시럽/소스'],
+    '버블 스트로우 (매장용)': ['버블티스트로 (벌크)', '비식품'], '버블 스트로우 (포장용)': ['버블티스트로 (개별포장)', '비식품'], '부스터 베이스': ['부스터베이스', '시럽/소스'], '블루베리 베이스': ['블루베리베이스', '시럽/소스'],
+    '블루큐라소 시럽': ['블루큐라소시럽', '시럽/소스'], '1구 캐리어 (비닐)': ['비닐캐리어 1구', '비식품'], '2구 캐리어 (비닐)': ['비닐캐리어 2구', '비식품'], '꿀': ['사양벌꿀', '시럽/소스'],
+    '슈가시럽': ['슈가카페시럽', '시럽/소스'], '기본 스트로우 (포장용)': ['스트로우 (개별포장)', '비식품'], '기본 스트로우 (매장용)': ['스트로우 (벌크)', '비식품'], '아몬드 브리즈': ['아몬드브리즈', '유제품'],
+    '아몬드 슬라이스': ['아몬드슬라이스', '기타식품'], '20온즈 컵': ['아이스컵 (20oz)', '비식품'], '24온즈 컵': ['아이스컵 (24oz)', '비식품'], '32온즈 컵': ['아이스컵 (32oz)', '비식품'],
+    '20·24온즈 돔 리드': ['아이스컵돔뚜껑 (20oz/24oz)', '비식품'], '32온즈 돔 리드': ['아이스컵돔뚜껑 (32oz)', '비식품'], '아이스티 복숭아': ['아이스티파우더', '파우더류'], '사과 티백': ['애플티', '커피/티'],
+    '얼그레이 티백': ['얼그레이 티백', '커피/티'], '오레오': ['오레오', '기타식품'], '요거트 파우더': ['요거트파우더', '파우더류'], '나이프': ['일회용나이프', '비식품'],
+    '스푼': ['일회용스푼', '비식품'], '포크': ['일회용포크', '비식품'], '휘핑 (일회용)': ['일회용휘핑크림', '유제품'], '자몽 시럽': ['자몽시럽', '시럽/소스'],
+    '저당 꿀배 베이스': ['저당꿀배베이스', '시럽/소스'], '제로 복숭아 시럽': ['제로복숭아베이스', '시럽/소스'], '제로사이다': ['제로사이다', 'RTD'], '2구 캐리어 (종이)': ['종이캐리어 (2구)', '비식품'],
+    '(Hot) 20온즈 리드': ['종이컵 뚜껑', '비식품'], '(Hot) 20온즈 컵': ['종이컵2 (20oz)', '비식품'], '청포도 스무디 퓨레': ['청포도베이스', '시럽/소스'], '체리 파우더': ['체리가루', '파우더류'],
+    '초코 토핑': ['초코소스', '시럽/소스'], '초코 파우더': ['초코파우더', '파우더류'], '초코칩': ['초콜릿칩', '베이커리'], '카라멜 토핑': ['카라멜소스', '시럽/소스'],
+    '카라멜 시럽': ['카라멜시럽', '시럽/소스'], '캐모마일 티백': ['캐모마일 티백', '커피/티'], '32온즈 컵홀더': ['컵홀더 (32oz)', '비식품'], '24온즈 컵홀더': ['컵홀더2 (20oz/24oz)', '비식품'],
+    '코카콜라': ['코카콜라 캔', 'RTD'], '코코넛 파우더': ['코코넛파우더', '파우더류'], '코코아 분말': ['코코아분말', '파우더류'], '콜드브루 디카페인': ['콜드브루디카페인원액', '커피/티'],
+    '콜드브루 오리지날': ['콜드브루원액', '커피/티'], '쿠키베이스': ['쿠키베이스파우더', '파우더류'], '쿠키 분태': ['쿠키크럼', '기타식품'], '코코넛 칩': ['킨디코코넛칩', '기타식품'],
+    '토피넛 파우더': ['토피넛라떼', '파우더류'], '페퍼민트 티백': ['페퍼민트 티백', '커피/티'], '할커피 파우더': ['할커피파우더', '파우더류'], '자몽에이드 베이스': ['허니자몽에이드', '시럽/소스'],
+    '헤이즐넛 시럽': ['헤이즐넛시럽', '시럽/소스'], '홍차 파우더': ['홍차라떼파우더', '파우더류'], '황설탕': ['황설탕', '기타식품'], '휘핑': ['휘핑크림', '유제품'],
+    '흑당 퓨레': ['흑당베이스', '시럽/소스'], '사이다': ['815사이다 패트', 'RTD'],
+  };
+  const ORDER_CATEGORIES = ['시럽/소스', '유제품', '기타식품', '파우더류', '비식품', '신선식품', '베이커리', 'RTD', '냉동과일', '커피/티', '검색 or 사입'];
+  const orderKey = (label) => String(label).replace(/[\s·]/g, '');
+  const ORDER_LOOKUP = Object.fromEntries(Object.entries(ORDER_NAMES).map(([k, v]) => [orderKey(k), v]));
+  const orderInfo = (label) => ORDER_LOOKUP[orderKey(label)] || [label, '검색 or 사입'];
+
   function buildReorderSummary(valuesMap) {
     adminSummaryEl.innerHTML = '';
-    let any = false;
+    const groups = new Map(ORDER_CATEGORIES.map((c) => [c, []]));
 
-    DATA.forEach((items, pageIdx) => {
-      const shortageItems = items.filter(
-        (item) => formatSavedValue(item, valuesMap).cls === 'a-under',
-      );
-      if (!shortageItems.length) return;
-      any = true;
+    DATA.flat().forEach((item) => {
+      if (formatSavedValue(item, valuesMap).cls !== 'a-under') return;
+      const raw = valuesMap[item._id];
+      const rawNum = Number(raw);
+      let text;
+      if (item.segments || item.orderThreshold !== undefined) {
+        text = '발주';
+      } else {
+        const { num: target, unit } = parseTargetParts(item.qty);
+        const missing = target !== null ? target - rawNum : null;
+        text = missing !== null ? `${missing}${unit}` : '발주 필요';
+      }
+      const [name, cat] = orderInfo(item.label);
+      (groups.get(cat) || groups.get('검색 or 사입')).push({ name, text });
+    });
 
-      const pageLabel = document.createElement('div');
-      pageLabel.className = 'admin-page-label';
-      pageLabel.textContent = `${pageIdx + 1} 페이지`;
-      adminSummaryEl.appendChild(pageLabel);
-
-      shortageItems.forEach((item) => {
-        const raw = valuesMap[item._id];
-        const rawNum = Number(raw);
-        let text;
-        if (item.segments || item.orderThreshold !== undefined) {
-          text = '발주';
-        } else {
-          const { num: target, unit } = parseTargetParts(item.qty);
-          const missing = target !== null ? target - rawNum : null;
-          text = missing !== null ? `${missing}${unit}` : '발주 필요';
-        }
+    const used = [...groups].filter(([, rows]) => rows.length);
+    if (!used.length) {
+      adminSummaryEl.innerHTML = '<div class="admin-empty">발주가 필요한 항목이 없습니다</div>';
+      return;
+    }
+    used.forEach(([cat, rows]) => {
+      const label = document.createElement('div');
+      label.className = 'admin-page-label';
+      label.textContent = cat;
+      adminSummaryEl.appendChild(label);
+      rows.forEach(({ name, text }) => {
         const row = document.createElement('div');
         row.className = 'admin-row';
         row.innerHTML = `
-          <span class="a-label">${item.label}</span>
+          <span class="a-label">${name}</span>
           <span class="a-value a-under">${text}</span>
         `;
         adminSummaryEl.appendChild(row);
       });
     });
-
-    if (!any) {
-      adminSummaryEl.innerHTML = '<div class="admin-empty">발주가 필요한 항목이 없습니다</div>';
-    }
   }
 
   const targetEditor = document.getElementById('targetEditor');
